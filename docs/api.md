@@ -33,10 +33,10 @@ PrayerTimes(coordinates, date, calculation_method=None,
   `adjustments` — saturate Asr to Dhuhr instead of returning
   inverted times.
 - `time_for_prayer(prayer: Prayer) -> datetime` — same values by enum
-  (`Prayer.NONE` raises `ValueError`).
-- Raises `ValueError` if both/neither of method/parameters is given;
-  `TypeError` for a non-`CalculationMethod` method; `ValueError` for an
-  unknown madhab; `RuntimeError` with details when the sun never
+  (`Prayer.NONE` raises `ConfigurationError`).
+- Raises `ConfigurationError` if both/neither of method/parameters is
+  given, for a non-`CalculationMethod` method, or for an unknown
+  madhab; `AstronomicalError` with details when the sun never
   rises/sets (polar day/night).
 
 ## Qibla

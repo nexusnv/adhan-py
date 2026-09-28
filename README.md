@@ -25,7 +25,7 @@ resolve IANA time zones (`pip install tzdata`).
   times are estimated at the nearest latitude where it does (Aqrab
   al-Bilad); alternatives are `NEAREST_DAY` (nearest date with a normal
   schedule — returned datetimes carry that date), `MAKKAH` (Makkah's
-  schedule), and `NONE` (raise `RuntimeError` as before). Set via
+  schedule), and `NONE` (raise `AstronomicalError` as before). Set via
   `CalculationParameters(polar_circle_rule=...)`. Estimates are
   approximations: near the polar boundary adjacent markers can invert
   by minutes.
