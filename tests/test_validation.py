@@ -2,6 +2,7 @@ import pytest
 from adhanpy import PrayerTimes
 from adhanpy.calculation import CalculationMethod, CalculationParameters
 from adhanpy.data.Coordinates import Coordinates
+from adhanpy.exceptions import ValidationError
 from adhanpy.util.DateComponents import DateComponents
 
 
@@ -41,7 +42,7 @@ def test_out_of_range_tuple_rejected_by_prayer_times():
     ],
 )
 def test_out_of_range_parameters_rejected(kwargs):
-    with pytest.raises(ValueError, match="(?i)angle|interval"):
+    with pytest.raises(ValidationError, match="(?i)angle|interval"):
         CalculationParameters(**kwargs)
 
 

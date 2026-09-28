@@ -7,6 +7,7 @@ from adhanpy.calculation.HighLatitudeRule import HighLatitudeRule
 from adhanpy.calculation.PolarCircleRule import PolarCircleRule
 from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
 from adhanpy.data.NightPortions import NightPortions
+from adhanpy.exceptions import ConfigurationError, ValidationError
 
 
 class CalculationParameters:
@@ -35,7 +36,7 @@ class CalculationParameters:
 
         # Estimation strategy when the sun never rises/sets (polar day/night)
         if not isinstance(polar_circle_rule, PolarCircleRule):
-            raise TypeError(
+            raise ConfigurationError(
                 "polar_circle_rule must be a PolarCircleRule, "
                 f"got {type(polar_circle_rule).__name__}."
             )
@@ -53,7 +54,7 @@ class CalculationParameters:
         elif isinstance(method, CalculationMethod):
             self.method = method
         else:
-            raise TypeError(
+            raise ConfigurationError(
                 "method must be a CalculationMethod or None, "
                 f"got {type(method).__name__}."
             )
@@ -68,15 +69,15 @@ class CalculationParameters:
         self._set_parameters_using_method()
 
         if not 0 <= self.fajr_angle <= 90:
-            raise ValueError(
+            raise ValidationError(
                 f"Fajr angle must be within [0, 90], got {self.fajr_angle}."
             )
         if not 0 <= self.isha_angle <= 90:
-            raise ValueError(
+            raise ValidationError(
                 f"Isha angle must be within [0, 90], got {self.isha_angle}."
             )
         if self.isha_interval < 0:
-            raise ValueError(
+            raise ValidationError(
                 f"Isha interval must be non-negative, got {self.isha_interval}."
             )
 
@@ -90,7 +91,7 @@ class CalculationParameters:
         elif self.high_latitude_rule == HighLatitudeRule.TWILIGHT_ANGLE:
             return NightPortions(self.fajr_angle / 60.0, self.isha_angle / 60.0)
 
-        raise ValueError("Invalid high latitude rule")
+        raise ConfigurationError("Invalid high latitude rule")
 
     def _set_parameters_using_method(self) -> None:
         method_parameters = METHODS_PARAMETERS[self.method]

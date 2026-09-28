@@ -3,6 +3,7 @@ from adhanpy.calculation.CalculationMethod import CalculationMethod
 from adhanpy.calculation.CalculationParameters import CalculationParameters
 from adhanpy.calculation.HighLatitudeRule import HighLatitudeRule
 from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
+from adhanpy.exceptions import ConfigurationError
 
 
 @pytest.mark.parametrize(
@@ -62,7 +63,7 @@ def test_night_portion_with_invalid_high_latitude_rule():
     parameters.high_latitude_rule = None
 
     # Act, Assert
-    with pytest.raises(ValueError, match="Invalid high latitude rule"):
+    with pytest.raises(ConfigurationError, match="Invalid high latitude rule"):
         parameters.night_portions()
 
 
@@ -104,7 +105,7 @@ def test_method_has_precedence_over_other_parameters():
 
 
 def test_invalid_method_type_raises():
-    with pytest.raises((TypeError, ValueError)):
+    with pytest.raises(ConfigurationError):
         CalculationParameters(method="bogus", fajr_angle=18)
 
 

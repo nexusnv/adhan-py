@@ -97,7 +97,7 @@ def test_unknown_polar_rule_raises():
 
 
 def test_invalid_polar_rule_type_raises_at_construction():
-    with pytest.raises(TypeError, match="(?i)polar"):
+    with pytest.raises(ConfigurationError, match="(?i)polar"):
         CalculationParameters(
             method=CalculationMethod.MUSLIM_WORLD_LEAGUE,
             polar_circle_rule="bogus",
