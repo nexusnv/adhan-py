@@ -8,6 +8,7 @@ from adhanpy.calculation.CalculationParameters import CalculationParameters
 from adhanpy.calculation.Madhab import Madhab
 from adhanpy.calculation.PolarCircleRule import PolarCircleRule
 from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
+from adhanpy.exceptions import AstronomicalError, ConfigurationError
 from adhanpy.calculation.Twilight import (
     season_adjusted_evening_twilight,
     season_adjusted_morning_twilight,
@@ -76,7 +77,7 @@ def _nearest_date_with_sunrise_sunset(
             candidate = DateComponents.from_utc(base + timedelta(days=delta))
             if _schedule_defined(candidate, coordinates):
                 return candidate
-    raise RuntimeError(  # pragma: no cover - every location has rise/set days
+    raise AstronomicalError(  # pragma: no cover - every location has rise/set days
         "No date with sunrise/sunset found within a year."
     )
 
@@ -101,7 +102,7 @@ class PrayerTimes:
         """
 
         if (calculation_parameters is None) == (calculation_method is None):
-            raise ValueError(
+            raise ConfigurationError(
                 "Only one of calculation_method or calculation_parameters must be passed."
             )
 
@@ -166,7 +167,7 @@ class PrayerTimes:
             or sunset_components is None
             or tomorrow_sunrise_components is None
         ):
-            raise RuntimeError(
+            raise AstronomicalError(
                 "Unable to compute prayer times: sunrise, sunset, or solar "
                 "transit is undefined for these coordinates and date "
                 "(polar day/night). "
@@ -228,7 +229,7 @@ class PrayerTimes:
         elif rule == PolarCircleRule.MAKKAH:
             self.coordinates = Coordinates(MAKKAH.latitude, MAKKAH.longitude)
         else:
-            raise ValueError(f"Unknown polar circle rule: {rule!r}.")
+            raise ConfigurationError(f"Unknown polar circle rule: {rule!r}.")
 
     def _set_fajr(self) -> None:
         temp_fajr = None
@@ -288,7 +289,7 @@ class PrayerTimes:
     def _set_asr(self) -> None:
         madhab = self.calculation_parameters.madhab
         if not isinstance(madhab, Madhab):
-            raise ValueError(f"Unknown madhab: {madhab!r}.")
+            raise ConfigurationError(f"Unknown madhab: {madhab!r}.")
 
         temp_asr = None
         if time_components := TimeComponents.from_float(
@@ -297,7 +298,7 @@ class PrayerTimes:
             temp_asr = time_components.date_components(self._date_components)
 
         if temp_asr is None:
-            raise RuntimeError(
+            raise AstronomicalError(
                 "Unable to compute Asr: the afternoon shadow length is "
                 "undefined for these coordinates and date "
                 f"(coordinates={self.coordinates}, "
@@ -330,6 +331,9 @@ class PrayerTimes:
         # Isha calculation with check against safe value
         temp_isha = None
         try:
+            # NOTE: stays ValueError on purpose - the except (ValueError,
+            # TypeError) below depends on this exact type to switch to
+            # angle-based Isha. Not part of the public error tree.
             if self.calculation_parameters.isha_interval < 1:
                 raise ValueError("Isha interval is either not defined or less than 1.")
 
@@ -410,7 +414,7 @@ class PrayerTimes:
             return self.maghrib
         elif prayer == Prayer.ISHA:
             return self.isha
-        raise ValueError(f"Unknown prayer: {prayer!r}.")
+        raise ConfigurationError(f"Unknown prayer: {prayer!r}.")
 
     def _adjust_prayers_time_zone(self) -> None:
         if self.time_zone is not None:

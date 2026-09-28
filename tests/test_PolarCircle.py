@@ -7,6 +7,7 @@ from adhanpy.calculation import (
     PolarCircleRule,
 )
 from adhanpy.data.Coordinates import Coordinates
+from adhanpy.exceptions import ConfigurationError
 from adhanpy.Qibla import MAKKAH
 from adhanpy.util.DateComponents import DateComponents
 
@@ -91,7 +92,7 @@ def test_unknown_polar_rule_raises():
     params = _params()
     params.polar_circle_rule = "bogus"
 
-    with pytest.raises(ValueError, match="(?i)polar"):
+    with pytest.raises(ConfigurationError, match="(?i)polar"):
         PrayerTimes(TROMSO, WINTER, calculation_parameters=params)
 
 

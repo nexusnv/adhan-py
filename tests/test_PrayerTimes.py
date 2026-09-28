@@ -11,6 +11,7 @@ from adhanpy.calculation.Madhab import Madhab
 from adhanpy.calculation.PolarCircleRule import PolarCircleRule
 from adhanpy.PrayerTimes import PrayerTimes
 from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
+from adhanpy.exceptions import AstronomicalError, ConfigurationError
 from zoneinfo import ZoneInfo
 
 
@@ -42,7 +43,7 @@ def test_either_calculation_method_or_calculation_parameters_is_passed():
     coordinates = (35.7750, -78.6336)
 
     with pytest.raises(
-        ValueError,
+        ConfigurationError,
         match="Only one of calculation_method or calculation_parameters must be passed.",
     ):
         PrayerTimes(coordinates, date, method, params)
@@ -56,7 +57,7 @@ def test_when_transit_or_sunrise_components_or_sunset_components_or_tomorrow_sun
     method = CalculationMethod.NORTH_AMERICA
     coordinates = (35.7750, -78.6336)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(AstronomicalError):
         PrayerTimes(coordinates, date, method)
 
 
@@ -66,7 +67,7 @@ def test_when_asr_is_not_set_raise_exception(mocker):
     method = CalculationMethod.NORTH_AMERICA
     coordinates = (35.7750, -78.6336)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(AstronomicalError):
         PrayerTimes(coordinates, date, method)
 
 
@@ -265,7 +266,7 @@ def test_polar_night_error_message():
     params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
     params.polar_circle_rule = PolarCircleRule.NONE
 
-    with pytest.raises(RuntimeError, match="(?i)polar"):
+    with pytest.raises(AstronomicalError, match="(?i)polar"):
         PrayerTimes(
             (68.35, 18.83),
             DateComponents(2015, 12, 21),
@@ -273,11 +274,11 @@ def test_polar_night_error_message():
         )
 
 
-def test_invalid_madhab_raises_value_error():
+def test_invalid_madhab_raises_configuration_error():
     params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
     params.madhab = None
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ConfigurationError):
         PrayerTimes(
             (35.7750, -78.6336),
             DateComponents(2015, 7, 12),
