@@ -1,12 +1,12 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from adhanpy.calculation import CalculationMethod
-from adhanpy.PrayerTimes import PrayerTimes
+from adhan.calculation import CalculationMethod
+from adhan.PrayerTimes import PrayerTimes
 
 
-def print_prayer_times(when: datetime, prayer_times: PrayerTimes):
+def print_prayer_times(when: datetime, prayer_times: PrayerTimes) -> None:
     format = "%H:%M"
-    print(f"Prayer times for {today.strftime('%A %d %B %Y')}:")
+    print(f"Prayer times for {when.strftime('%A %d %B %Y')}:")
     print(f"Fajr: {prayer_times.fajr.strftime(format)}")
     print(f"Sunrise: {prayer_times.sunrise.strftime(format)}")
     print(f"Dhuhr: {prayer_times.dhuhr.strftime(format)}")

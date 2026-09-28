@@ -1,13 +1,17 @@
 import math
 import pytest
-from adhanpy.util.DateComponents import DateComponents
-from adhanpy.calculation.CalculationMethod import CalculationMethod
-from adhanpy.calculation.CalculationParameters import CalculationParameters
-from adhanpy.astronomy.SolarTime import SolarTime
-from adhanpy.util.TimeComponents import TimeComponents
-from adhanpy.calculation.Madhab import Madhab
-from adhanpy.PrayerTimes import PrayerTimes
-from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
+from datetime import datetime, timezone
+from adhan.data.Coordinates import Coordinates
+from adhan.util.DateComponents import DateComponents
+from adhan.calculation.CalculationMethod import CalculationMethod
+from adhan.calculation.CalculationParameters import CalculationParameters
+from adhan.astronomy.SolarTime import SolarTime
+from adhan.util.TimeComponents import TimeComponents
+from adhan.calculation.Madhab import Madhab
+from adhan.calculation.PolarCircleRule import PolarCircleRule
+from adhan.PrayerTimes import PrayerTimes
+from adhan.calculation.PrayerAdjustments import PrayerAdjustments
+from adhan.exceptions import AstronomicalError, ConfigurationError
 from zoneinfo import ZoneInfo
 
 
@@ -39,7 +43,7 @@ def test_either_calculation_method_or_calculation_parameters_is_passed():
     coordinates = (35.7750, -78.6336)
 
     with pytest.raises(
-        ValueError,
+        ConfigurationError,
         match="Only one of calculation_method or calculation_parameters must be passed.",
     ):
         PrayerTimes(coordinates, date, method, params)
@@ -53,7 +57,7 @@ def test_when_transit_or_sunrise_components_or_sunset_components_or_tomorrow_sun
     method = CalculationMethod.NORTH_AMERICA
     coordinates = (35.7750, -78.6336)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(AstronomicalError):
         PrayerTimes(coordinates, date, method)
 
 
@@ -63,7 +67,7 @@ def test_when_asr_is_not_set_raise_exception(mocker):
     method = CalculationMethod.NORTH_AMERICA
     coordinates = (35.7750, -78.6336)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(AstronomicalError):
         PrayerTimes(coordinates, date, method)
 
 
@@ -240,6 +244,81 @@ def test_moon_sighting_method_high_lat_different_times_of_year():
     date = DateComponents(2015, 9, 12)
     prayer_times = PrayerTimes(coordinates, date, calculation_parameters=params)
     assert prayer_times.isha.astimezone(tz).strftime(format) == "09:03 PM"
+
+
+def test_prayer_times_second_precision_locked():
+    # minute-resolution goldens cannot catch rounding drift; lock full
+    # precision in UTC so future rounding changes show up here
+    date = DateComponents(2015, 7, 12)
+    params = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    params.madhab = Madhab.HANAFI
+    prayer_times = PrayerTimes((35.7750, -78.6336), date, calculation_parameters=params)
+
+    assert prayer_times.fajr.strftime("%H:%M:%S") == "08:42:00"
+    assert prayer_times.sunrise.strftime("%H:%M:%S") == "10:08:00"
+    assert prayer_times.dhuhr.strftime("%H:%M:%S") == "17:21:00"
+    assert prayer_times.asr.strftime("%H:%M:%S") == "22:22:00"
+    assert prayer_times.maghrib.strftime("%H:%M:%S") == "00:32:00"
+    assert prayer_times.isha.strftime("%H:%M:%S") == "01:57:00"
+
+
+def test_polar_night_error_message():
+    params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
+    params.polar_circle_rule = PolarCircleRule.NONE
+
+    with pytest.raises(AstronomicalError, match="(?i)polar"):
+        PrayerTimes(
+            (68.35, 18.83),
+            DateComponents(2015, 12, 21),
+            calculation_parameters=params,
+        )
+
+
+def test_invalid_madhab_raises_configuration_error():
+    params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
+    params.madhab = None
+
+    with pytest.raises(ConfigurationError):
+        PrayerTimes(
+            (35.7750, -78.6336),
+            DateComponents(2015, 7, 12),
+            calculation_parameters=params,
+        )
+
+
+def test_prayer_times_accepts_coordinates_object():
+    date = DateComponents(2015, 7, 12)
+    params_tuple = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    params_coords = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+
+    from_tuple = PrayerTimes(
+        (35.7750, -78.6336), date, calculation_parameters=params_tuple
+    )
+    from_object = PrayerTimes(
+        Coordinates(35.7750, -78.6336), date, calculation_parameters=params_coords
+    )
+
+    assert from_object.fajr == from_tuple.fajr
+    assert from_object.isha == from_tuple.isha
+
+
+def test_prayer_times_accepts_datetime_and_date_components():
+    params_dt = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    params_dc = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+
+    from_datetime = PrayerTimes(
+        (35.7750, -78.6336),
+        datetime(2015, 7, 12, tzinfo=timezone.utc),
+        calculation_parameters=params_dt,
+    )
+    from_components = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=params_dc,
+    )
+
+    assert from_components.fajr == from_datetime.fajr
+    assert from_components.isha == from_datetime.isha
 
 
 def test_prayer_times_timezone_conversion():

@@ -1,6 +1,8 @@
 import math
 import pytest
-from adhanpy.util.TimeComponents import TimeComponents
+from datetime import datetime, timezone
+from adhan.util.DateComponents import DateComponents
+from adhan.util.TimeComponents import TimeComponents
 
 
 @pytest.mark.parametrize(
@@ -27,3 +29,21 @@ def test_from_float_returns_None_when_nan_or_infinity():
 
     assert components_fron_nan is None
     assert components_fron_inf is None
+
+
+def test_date_components():
+    date = DateComponents(2015, 7, 12)
+
+    assert TimeComponents(8, 42, 0).date_components(date) == datetime(
+        2015, 7, 12, 8, 42, tzinfo=timezone.utc
+    )
+
+
+def test_date_components_rolls_past_midnight():
+    # solar times at/after 24:00 (e.g. high-latitude sunset "24:32")
+    # belong to the next day
+    date = DateComponents(2015, 7, 12)
+
+    assert TimeComponents(24, 32, 0).date_components(date) == datetime(
+        2015, 7, 13, 0, 32, tzinfo=timezone.utc
+    )

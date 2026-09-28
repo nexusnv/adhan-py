@@ -1,7 +1,9 @@
 import pytest
-from adhanpy.calculation.CalculationMethod import CalculationMethod
-from adhanpy.calculation.CalculationParameters import CalculationParameters
-from adhanpy.calculation.HighLatitudeRule import HighLatitudeRule
+from adhan.calculation.CalculationMethod import CalculationMethod
+from adhan.calculation.CalculationParameters import CalculationParameters
+from adhan.calculation.HighLatitudeRule import HighLatitudeRule
+from adhan.calculation.PrayerAdjustments import PrayerAdjustments
+from adhan.exceptions import ConfigurationError
 
 
 @pytest.mark.parametrize(
@@ -61,7 +63,7 @@ def test_night_portion_with_invalid_high_latitude_rule():
     parameters.high_latitude_rule = None
 
     # Act, Assert
-    with pytest.raises(ValueError, match="Invalid high latitude rule"):
+    with pytest.raises(ConfigurationError, match="Invalid high latitude rule"):
         parameters.night_portions()
 
 
@@ -100,3 +102,40 @@ def test_method_has_precedence_over_other_parameters():
     # Act, Assert
     # MOON_SIGHTING_COMMITTEE has a fajr_angle of 18 and should overwrite fajr_angle provided
     assert params.fajr_angle == 18
+
+
+def test_invalid_method_type_raises():
+    with pytest.raises(ConfigurationError):
+        CalculationParameters(method="bogus", fajr_angle=18)
+
+
+def test_method_adjustments_are_independent_between_instances():
+    first = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
+    second = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
+
+    assert first.method_adjustments is not second.method_adjustments
+
+    first.method_adjustments.dhuhr = 99
+
+    assert second.method_adjustments.dhuhr == 1
+    assert (
+        CalculationParameters(
+            method=CalculationMethod.MUSLIM_WORLD_LEAGUE
+        ).method_adjustments.dhuhr
+        == 1
+    )
+
+
+def test_caller_provided_adjustments_are_copied():
+    shared = PrayerAdjustments(fajr=2)
+    first = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, adjustments=shared
+    )
+    second = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, adjustments=shared
+    )
+
+    first.adjustments.fajr = 99
+
+    assert second.adjustments.fajr == 2
+    assert shared.fajr == 2

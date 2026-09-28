@@ -1,9 +1,10 @@
+import math
 import pytest
-import adhanpy.astronomy.Astronomical as Astronomical
-import adhanpy.util.FloatUtil as FloatUtil
-import adhanpy.astronomy.CalendricalHelper as CalendricalHelper
-from adhanpy.astronomy.SolarCoordinates import SolarCoordinates
-from adhanpy.data.Coordinates import Coordinates
+import adhan.astronomy.Astronomical as Astronomical
+import adhan.util.FloatUtil as FloatUtil
+import adhan.astronomy.CalendricalHelper as CalendricalHelper
+from adhan.astronomy.SolarCoordinates import SolarCoordinates
+from adhan.data.Coordinates import Coordinates
 
 
 def test_solar_coordinates():
@@ -123,3 +124,23 @@ def test_angle_interpolation():
 
     i2 = Astronomical.interpolate_angles(1, 359, 3, 0.6)
     assert i2 == pytest.approx(2.2, abs=1e-6)
+
+
+def test_corrected_hour_angle_returns_nan_for_impossible_altitude():
+    # an altitude the sun can never reach (e.g. polar night geometry)
+    # must yield NaN so callers can fall back instead of crashing
+    impossible = Astronomical.corrected_hour_angle(
+        0.81965,
+        -36,
+        Coordinates(42.3333, -71.0833),
+        True,
+        177.74208,
+        41.73129,
+        40.68021,
+        42.78204,
+        18.44092,
+        18.04761,
+        18.82742,
+    )
+
+    assert math.isnan(impossible)

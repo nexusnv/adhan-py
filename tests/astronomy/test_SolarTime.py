@@ -1,8 +1,8 @@
 from datetime import datetime, timezone, timedelta
-from adhanpy.data.Coordinates import Coordinates
-from adhanpy.util.DateComponents import DateComponents
-from adhanpy.util.TimeComponents import TimeComponents
-from adhanpy.astronomy.SolarTime import SolarTime
+from adhan.data.Coordinates import Coordinates
+from adhan.util.DateComponents import DateComponents
+from adhan.util.TimeComponents import TimeComponents
+from adhan.astronomy.SolarTime import SolarTime
 
 
 def test_solar_time():
@@ -32,6 +32,7 @@ def test_solar_time():
 def test_right_ascension_edge_case():
     coordinates = Coordinates(35 + 47.0 / 60.0, -78 - 39.0 / 60.0)
 
+    previous_time = None
     for i in range(365):
         time = SolarTime(_make_date_with_offset(2016, 1, 1, i), coordinates)
 
