@@ -123,7 +123,7 @@ from adhanpy.exceptions import AstronomicalError, ConfigurationError
 6. Undefined-Asr `raise RuntimeError(` → `raise AstronomicalError(`
 7. Unknown prayer `raise ValueError(f"Unknown prayer` → `raise ConfigurationError(`
 8. Unreachable no-valid-date guard `raise RuntimeError(` → `raise AstronomicalError(`
-9. isha-interval control-flow `raise ValueError("Isha interval is either not defined` — DO NOT TOUCH. Add above it:
+9. isha-interval control-flow `raise ValueError("Isha interval is either not defined` — DO NOT TOUCH. Add directly above it (12-space indent, try-body level, black-clean):
 ```python
         # NOTE: stays ValueError on purpose - the except (ValueError,
         # TypeError) below depends on this exact type to switch to
@@ -133,7 +133,7 @@ from adhanpy.exceptions import AstronomicalError, ConfigurationError
 - [ ] **Step 1: Update the affected tests first (TDD: they fail before the swap)**
 
 In `tests/test_PrayerTimes.py`: add `from adhanpy.exceptions import AstronomicalError, ConfigurationError`; change line 44 `pytest.raises(ValueError,` → `pytest.raises(ConfigurationError,`; lines 59, 69 `pytest.raises(RuntimeError)` → `pytest.raises(AstronomicalError)`; line 268 `pytest.raises(RuntimeError, match="(?i)polar")` → `pytest.raises(AstronomicalError, match="(?i)polar")`; rename `test_invalid_madhab_raises_value_error` → `test_invalid_madhab_raises_configuration_error` and change its `pytest.raises(ValueError)` → `pytest.raises(ConfigurationError)`.
-In `tests/test_PolarCircle.py`: line 94 `pytest.raises(ValueError, match="(?i)polar")` → `pytest.raises(ConfigurationError, match="(?i)polar")`; line 99 `pytest.raises(TypeError, match="(?i)polar")` → `pytest.raises(ConfigurationError, match="(?i)polar")`.
+In `tests/test_PolarCircle.py`: add `from adhanpy.exceptions import ConfigurationError`; line 94 `pytest.raises(ValueError, match="(?i)polar")` → `pytest.raises(ConfigurationError, match="(?i)polar")`. (The construction test `test_invalid_polar_rule_type_raises_at_construction` is Task 3 scope — it constructs `CalculationParameters` directly. Leave it on `TypeError` here.)
 
 - [ ] **Step 2: Run to verify they fail**
 
@@ -174,10 +174,11 @@ Exact swaps in `src/adhanpy/calculation/CalculationParameters.py`:
 
 In `tests/calculation/test_CalculationParameters.py`: line 65 `pytest.raises(ValueError, match="Invalid high latitude rule")` → `pytest.raises(ConfigurationError, match="Invalid high latitude rule")`; line 107 `pytest.raises((TypeError, ValueError))` → `pytest.raises(ConfigurationError)`.
 In `tests/test_validation.py`: add `from adhanpy.exceptions import ValidationError`; lines 20, 25 `pytest.raises(ValueError, match="(?i)latitude|longitude")` → `pytest.raises(ValidationError, match="(?i)latitude|longitude")`; line 44 `pytest.raises(ValueError, match="(?i)angle|interval")` → `pytest.raises(ValidationError, match="(?i)angle|interval")`.
+In `tests/test_PolarCircle.py`: `test_invalid_polar_rule_type_raises_at_construction` line 99 `pytest.raises(TypeError, match="(?i)polar")` → `pytest.raises(ConfigurationError, match="(?i)polar")` (moved here from Task 2 — it constructs `CalculationParameters` directly).
 
 - [ ] **Step 2: Run to verify they fail**
 
-Run: `/tmp/opencode/adhanpy-bump/bin/python -m pytest tests/calculation/test_CalculationParameters.py tests/test_validation.py -q -p no:cacheprovider --no-cov`
+Run: `/tmp/opencode/adhanpy-bump/bin/python -m pytest tests/calculation/test_CalculationParameters.py tests/test_validation.py tests/test_PolarCircle.py -q -p no:cacheprovider --no-cov`
 Expected: FAIL
 
 - [ ] **Step 3: Apply the 6 src edits above**
@@ -190,7 +191,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/adhanpy/calculation/CalculationParameters.py tests/calculation/test_CalculationParameters.py tests/test_validation.py
+git add src/adhanpy/calculation/CalculationParameters.py tests/calculation/test_CalculationParameters.py tests/test_validation.py tests/test_PolarCircle.py
 git commit -m "feat: migrate CalculationParameters to AdhanError tree (issue #7)"
 ```
 
