@@ -209,11 +209,12 @@ Exact swaps:
 2. `src/adhanpy/data/Coordinates.py`: add `from adhanpy.exceptions import ValidationError`; change both range `raise ValueError(` → `raise ValidationError(` (messages unchanged).
 3. `tests/calculation/test_Madhab.py` line 14: `pytest.raises(ValueError, match="(?i)madhab")` → `pytest.raises(ConfigurationError, match="(?i)madhab")`.
 4. `tests/test_public_api.py` line 94: `pytest.raises(ValueError, match="(?i)prayer")` → `pytest.raises(ConfigurationError, match="(?i)prayer")`; add the two imports used above to that file's import block (`ConfigurationError` alongside existing imports).
+5. `tests/test_validation.py` coordinate hunks (moved here from Task 3 — they cover `Coordinates` raise sites): lines 20, 25 `pytest.raises(ValueError, match="(?i)latitude|longitude")` → `pytest.raises(ValidationError, match="(?i)latitude|longitude")`. (The parameters hunk at line 44 already migrated in Task 3; the `ValidationError` import is already present.)
 
-- [ ] **Step 1: Update the two test files first**
+- [ ] **Step 1: Update the three test files first**
 - [ ] **Step 2: Run to verify they fail**
 
-Run: `/tmp/opencode/adhanpy-bump/bin/python -m pytest tests/calculation/test_Madhab.py tests/test_public_api.py -q -p no:cacheprovider --no-cov`
+Run: `/tmp/opencode/adhanpy-bump/bin/python -m pytest tests/calculation/test_Madhab.py tests/test_public_api.py tests/test_validation.py -q -p no:cacheprovider --no-cov`
 Expected: FAIL
 
 - [ ] **Step 3: Apply the src swaps**
@@ -225,7 +226,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/adhanpy/calculation/Madhab.py src/adhanpy/data/Coordinates.py tests/calculation/test_Madhab.py tests/test_public_api.py
+git add src/adhanpy/calculation/Madhab.py src/adhanpy/data/Coordinates.py tests/calculation/test_Madhab.py tests/test_public_api.py tests/test_validation.py
 git commit -m "feat: migrate Madhab/Coordinates to AdhanError tree (issue #7)"
 ```
 
