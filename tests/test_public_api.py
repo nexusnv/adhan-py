@@ -3,6 +3,12 @@ import pytest
 import adhanpy
 from adhanpy import PrayerTimes as RootPrayerTimes
 from adhanpy import Qibla, SunnahTimes
+from adhanpy.exceptions import (
+    AdhanError,
+    AstronomicalError,
+    ConfigurationError,
+    ValidationError,
+)
 from adhanpy.calculation import (
     CalculationMethod,
     CalculationParameters,
@@ -12,13 +18,16 @@ from adhanpy.calculation import (
     PrayerAdjustments,
 )
 from adhanpy.data import Coordinates, NightPortions, Prayer, ShadowLength
-from adhanpy.exceptions import ConfigurationError
 from adhanpy.PrayerTimes import PrayerTimes
 from adhanpy.util.DateComponents import DateComponents
 
 
 def test_root_exports_match_all():
     assert getattr(adhanpy, "__all__") == [
+        "AdhanError",
+        "AstronomicalError",
+        "ConfigurationError",
+        "ValidationError",
         "PrayerTimes",
         "Qibla",
         "SunnahTimes",
@@ -32,6 +41,10 @@ def test_root_exports_match_all():
         "Prayer",
     ]
     assert {
+        "AdhanError": AdhanError,
+        "AstronomicalError": AstronomicalError,
+        "ConfigurationError": ConfigurationError,
+        "ValidationError": ValidationError,
         "PrayerTimes": PrayerTimes,
         "Qibla": Qibla,
         "SunnahTimes": SunnahTimes,
