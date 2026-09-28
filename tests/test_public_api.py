@@ -12,6 +12,7 @@ from adhanpy.calculation import (
     PrayerAdjustments,
 )
 from adhanpy.data import Coordinates, NightPortions, Prayer, ShadowLength
+from adhanpy.exceptions import ConfigurationError
 from adhanpy.PrayerTimes import PrayerTimes
 from adhanpy.util.DateComponents import DateComponents
 
@@ -91,7 +92,7 @@ def test_time_for_prayer_rejects_none():
         ),
     )
 
-    with pytest.raises(ValueError, match="(?i)prayer"):
+    with pytest.raises(ConfigurationError, match="(?i)prayer"):
         prayer_times.time_for_prayer(Prayer.NONE)
 
 

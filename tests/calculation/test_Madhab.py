@@ -1,5 +1,6 @@
 import pytest
 from adhanpy.calculation.Madhab import Madhab
+from adhanpy.exceptions import ConfigurationError
 
 
 def test_shafi_shadow_length():
@@ -11,5 +12,5 @@ def test_hanafi_shadow_length():
 
 
 def test_unknown_madhab_raises():
-    with pytest.raises(ValueError, match="(?i)madhab"):
+    with pytest.raises(ConfigurationError, match="(?i)madhab"):
         Madhab.get_shadow_length(None)

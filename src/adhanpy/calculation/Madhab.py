@@ -1,5 +1,6 @@
 from enum import Enum
 from adhanpy.data.ShadowLength import ShadowLength
+from adhanpy.exceptions import ConfigurationError
 
 
 class Madhab(Enum):
@@ -15,4 +16,4 @@ class Madhab(Enum):
             return ShadowLength(ShadowLength.SINGLE)
         elif self == Madhab.HANAFI:
             return ShadowLength(ShadowLength.DOUBLE)
-        raise ValueError(f"Unknown madhab: {self!r}")
+        raise ConfigurationError(f"Unknown madhab: {self!r}")
