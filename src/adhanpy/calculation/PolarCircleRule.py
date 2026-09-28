@@ -5,7 +5,7 @@ class PolarCircleRule(Enum):
 
     NONE = 0
     """
-    No polar fallback: raise RuntimeError when the sun never rises
+    No polar fallback: raise AstronomicalError when the sun never rises
     or sets (polar day/night), as before.
     """
 

@@ -33,10 +33,10 @@ PrayerTimes(coordinates, date, calculation_method=None,
   `adjustments` — saturate Asr to Dhuhr instead of returning
   inverted times.
 - `time_for_prayer(prayer: Prayer) -> datetime` — same values by enum
-  (`Prayer.NONE` raises `ValueError`).
-- Raises `ValueError` if both/neither of method/parameters is given;
-  `TypeError` for a non-`CalculationMethod` method; `ValueError` for an
-  unknown madhab; `RuntimeError` with details when the sun never
+  (`Prayer.NONE` raises `ConfigurationError`).
+- Raises `ConfigurationError` if both/neither of method/parameters is
+  given, for a non-`CalculationMethod` method, or for an unknown
+  madhab; `AstronomicalError` with details when the sun never
   rises/sets (polar day/night).
 
 ## Qibla
@@ -109,3 +109,12 @@ python -m adhanpy --latitude 35.7750 --longitude -78.6336 \
 ```
 
 Prints `name=ISO-8601` lines in UTC (`--date` defaults to today).
+
+## Errors
+
+`AdhanError` is the base for all library errors (importable from the
+`adhanpy` root). Subclasses: `AstronomicalError` (polar day/night,
+undefined Asr), `ConfigurationError` (bad method/madhab/polar rule/
+prayer/high-latitude rule, method-vs-parameters exclusivity),
+`ValidationError` (out-of-range coordinates, angles, intervals).
+The isha-interval `ValueError` is internal control-flow and unchanged.
