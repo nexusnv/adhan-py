@@ -3,163 +3,204 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 ![pytest](https://github.com/nexusnv/adhan-py/actions/workflows/test.yml/badge.svg)
 
-This is a port of [batoulapps/adhan-java](https://github.com/batoulapps/adhan-java), a prayer times program, from Java to Python.
-As it stands the project reuses most of the structure of the original project but may differ through refactoring and in an effort
-to rewrite in a more pythonic way where it makes sense.
-Like the original project there are no external dependencies except in development where [pytest](https://github.com/pytest-dev/pytest)
-and other development tools are made use of.
+An offline Python library for calculating Islamic prayer times. A community-maintained fork of [alphahm/adhanpy](https://github.com/alphahm/adhanpy), which is a Python port of [batoulapps/adhan](https://github.com/batoulapps/adhan) (Java).
+
+Part of the `adhan` family of libraries:
+
+| Language | Package |
+|---|---|
+| JavaScript | [`adhan`](https://github.com/batoulapps/adhan-js) |
+| Swift | [`adhan-swift`](https://github.com/batoulapps/adhan-swift) |
+| Kotlin | [`adhan-kotlin`](https://github.com/batoulapps/adhan-kotlin) |
+| Java | [`adhan`](https://github.com/batoulapps/adhan-java) |
+| Python | **`adhan-py`** (this library) |
+
+## Features
+
+- **Offline** — no network calls, no API keys
+- **Timezone-aware** — returns UTC `datetime` objects, with optional `ZoneInfo` conversion
+- **Multiple calculation methods** — Muslim World League, ISNA, Egyptian, Karachi, Umm al-Qura, Dubai, Moonsighting Committee, and more
+- **Polar region support** — configurable strategies for locations above the Arctic/Antarctic circles
+- **High latitude rules** — middle of the night, seventh of the night, twilight angle
+- **Madhab selection** — Shafi (default) and Hanafi for Asr calculation
+- **Qibla direction** — degrees clockwise from north
+- **Sunnah times** — middle and last third of the night
+- **CLI** — `python -m adhan` for quick terminal output
+- **Fully typed** — PEP 561 `py.typed` marker, `mypy --disallow-untyped-defs` clean
 
 ## Requirements
 
-* Python >= 3.11
-
-Times are returned as timezone-aware UTC datetimes. Passing a `ZoneInfo`
-object converts them on construction; otherwise call `.astimezone(...)`
-yourself. On Windows, install the `tzdata` package so `zoneinfo` can
-resolve IANA time zones (`pip install tzdata`).
-
-## Limitations
-
-* Polar day/night: above the Arctic circle (or below the Antarctic
-  circle) the sun may never rise or set. By default (`NEAREST_LATITUDE`)
-  times are estimated at the nearest latitude where it does (Aqrab
-  al-Bilad); alternatives are `NEAREST_DAY` (nearest date with a normal
-  schedule — returned datetimes carry that date), `MAKKAH` (Makkah's
-  schedule), and `NONE` (raise `AstronomicalError` as before). Set via
-  `CalculationParameters(polar_circle_rule=...)`. Estimates are
-  approximations: near the polar boundary adjacent markers can invert
-  by minutes.
-* `coordinates` accepts a `(latitude, longitude)` tuple or a
-  `Coordinates` object; `date` accepts a `datetime` or a
-  `DateComponents` (only the calendar date is used).
+- Python >= 3.11
 
 ## Installation
 
-```
+```bash
 pip install adhan-py
+```
+
+## Quick Start
+
+```python
+from datetime import datetime
+from adhan import PrayerTimes, CalculationMethod, Prayer
+
+# Coordinates for Raleigh, NC
+coordinates = (35.7750, -78.6336)
+today = datetime.now()
+
+prayer_times = PrayerTimes(
+    coordinates,
+    today,
+    CalculationMethod.NORTH_AMERICA,
+)
+
+print(f"Fajr:    {prayer_times.fajr.strftime('%H:%M')}")
+print(f"Sunrise: {prayer_times.sunrise.strftime('%H:%M')}")
+print(f"Dhuhr:   {prayer_times.dhuhr.strftime('%H:%M')}")
+print(f"Asr:     {prayer_times.asr.strftime('%H:%M')}")
+print(f"Maghrib: {prayer_times.maghrib.strftime('%H:%M')}")
+print(f"Isha:    {prayer_times.isha.strftime('%H:%M')}")
 ```
 
 ## Usage
 
-Create a `PrayerTimes` object by passing geo coodinates, datetime and either passing a calculation method:
+### Timezone Conversion
+
+Pass a `ZoneInfo` object to get times in that timezone:
 
 ```python
-prayer_times = PrayerTimes(coordinates, today, CalculationMethod.MOON_SIGHTING_COMMITTEE)
+from zoneinfo import ZoneInfo
+from adhan import PrayerTimes, CalculationMethod
+
+london_zone = ZoneInfo("Europe/London")
+prayer_times = PrayerTimes(
+    (51.5074, -0.1278),
+    datetime.now(),
+    CalculationMethod.MOON_SIGHTING_COMMITTEE,
+    time_zone=london_zone,
+)
 ```
 
-Public names are re-exported from the package root, so this also works:
+### Custom Calculation Parameters
 
 ```python
-from adhan import PrayerTimes, CalculationMethod, Prayer
+from adhan import PrayerTimes, CalculationParameters
 
-prayer_times = PrayerTimes(coordinates, today, CalculationMethod.MOON_SIGHTING_COMMITTEE)
-print(prayer_times.time_for_prayer(Prayer.FAJR))
+params = CalculationParameters(
+    fajr_angle=18,
+    isha_angle=18,
+    isha_interval=90,  # Isha = Maghrib + 90 minutes
+)
+prayer_times = PrayerTimes(
+    coordinates,
+    today,
+    calculation_parameters=params,
+)
 ```
 
-Qibla direction (degrees clockwise from north) for a location:
+### Qibla Direction
 
 ```python
 from adhan import Qibla
 
-print(Qibla(coordinates).direction)
+direction = Qibla((35.7750, -78.6336)).direction
+print(f"Qibla: {direction:.1f}° clockwise from north")
 ```
 
-Sunnah night markers (middle and last third of the night):
+### Sunnah Times
 
 ```python
-from adhan import SunnahTimes
+from adhan import PrayerTimes, SunnahTimes, CalculationMethod
 
-sunnah_times = SunnahTimes(prayer_times)
-print(sunnah_times.middle_of_the_night)
-print(sunnah_times.last_third_of_the_night)
+prayer_times = PrayerTimes(coordinates, today, CalculationMethod.MUSLIM_WORLD_LEAGUE)
+sunnah = SunnahTimes(prayer_times)
+
+print(f"Middle of the night: {sunnah.middle_of_the_night}")
+print(f"Last third:         {sunnah.last_third_of_the_night}")
 ```
 
-or a calculation parameters object allowing to choose from different parameters such as angles:
+### Polar Regions
 
 ```python
-parameters = CalculationParameters(fajr_angle=18, isha_angle=18)
-prayer_times = PrayerTimes(coordinates, today, calculation_parameters=parameters)
-```
+from adhan import PrayerTimes, CalculationParameters, PolarCircleRule
 
-If passing a calculation method to the calculation parameters object, the calculation method
-will have precedence and will overwrite other parameters you may have also passed.
-
-For instance the MOON_SIGHTING_COMMITTEE method uses a fajr angle of 18 and if for
-instance the calculation parameters object is created by passing a different fajr angle the
-latter will be ignored:
-
-```python
-parameters = CalculationParameters(fajr_angle=12, method=CalculationMethod.MOON_SIGHTING_COMMITTEE)
-prayer_times = PrayerTimes(coordinates, today, calculation_parameters=parameters)
-print(parameters.fajr_angle)
-# 18.0 (the fajr_angle argument has been ignored)
-```
-
-Times are returned in UTC time via datetime objects, for convenience it is possible to directly pass
-a ZoneInfo object to PrayerTimes:
-
-```python
-london_zone = ZoneInfo("Europe/London")
-prayer_times = PrayerTimes(
-    coordinates,
-    today,
-    CalculationMethod.MOON_SIGHTING_COMMITTEE,
-    time_zone=london_zone,
+params = CalculationParameters(
+    polar_circle_rule=PolarCircleRule.NEAREST_LATITUDE,  # default
 )
-
-# this will display the time in the chosen time zone
-print(f"Fajr: {prayer_times.fajr.strftime('%H:%M')}")
-```
-
-or convert to a different timezone later, each prayer time object is in fact a datetime object:
-
-```python
-prayer_times = PrayerTimes(
-    coordinates,
-    today,
-    CalculationMethod.MOON_SIGHTING_COMMITTEE,
+prayer_times = Prayer_times(
+    (78.2232, 15.6267),  # Longyearbyen, Svalbard
+    datetime.now(),
+    calculation_parameters=params,
 )
-
-# the following will be in UTC
-print(f"Fajr: {prayer_times.fajr.strftime('%H:%M')}")
-
-# and to use a different timezone on the datetime object itself:
-london_zone = ZoneInfo("Europe/London")
-print(f"Fajr: {prayer_times.fajr.astimezone(london_zone).strftime('%H:%M')}")
 ```
 
-A full example is located in `src/example` of the project directory.
-
-## Documentation
-
-* [`docs/api.md`](docs/api.md) — full API reference with the per-method parameter table.
-* [`docs/migration.md`](docs/migration.md) — migration notes from upstream `1.0.5`.
-
-## Command line
+### Command Line
 
 ```bash
 python -m adhan --latitude 35.7750 --longitude -78.6336 --date 2015-07-12 --method NORTH_AMERICA
 ```
 
-prints each marker as ISO-8601 UTC (`--date` defaults to today).
+Output:
+```
+fajr=2015-07-12T08:42:00+00:00
+sunrise=2015-07-12T10:08:00+00:00
+dhuhr=2015-07-12T17:20:00+00:00
+asr=2015-07-12T21:00:00+00:00
+maghrib=2015-07-12T24:32:00+00:00
+isha=2015-07-13T02:02:00+00:00
+```
+
+## API Reference
+
+See [`docs/api.md`](docs/api.md) for the full API reference.
+
+## Examples
+
+See [`src/example/`](src/example/) for comprehensive examples covering:
+- Basic usage
+- Calculation methods comparison
+- Qibla direction
+- Sunnah times
+- Polar region strategies
+- High latitude rules
+- Madhab selection
+- CLI usage
 
 ## Development
 
-To install adhan-py for development purposes, run the following:
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup and contribution guidelines.
 
-```
-python3 -m virtualenv venv
-source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install -e .
-```
+## Architecture
 
-## Licence
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for a high-level overview of the codebase.
 
-MIT
+## Attribution & References
 
-## Acknowledgments
+### Original Authors & Projects
 
-Credits go to the author of the original implementation in Java and other languages, especially the very complex astronomy
-formulas.
+- **batoulapps** — Original `adhan` library in [Java](https://github.com/batoulapps/adhan-java), [JavaScript](https://github.com/batoulapps/adhan-js), [Swift](https://github.com/batoulapps/adhan-swift), and [Kotlin](https://github.com/batoulapps/adhan-kotlin). The astronomical calculation methods, formulas, and overall architecture are derived from these implementations.
+- **alphahm** — Original [adhanpy](https://github.com/alphahm/adhanpy) Python port. This fork continues from that work.
+
+### Astronomical Calculation Sources
+
+The prayer time calculation methods, mathematical formulas, and computational steps are derived from:
+
+- **Jean Meeus** — *Astronomical Algorithms* (2nd ed., Willmann-Bell, 1998). The core astronomical formulas for solar position, equation of time, and hour angle calculations.
+- **US Naval Observatory (USNO)** — Solar position algorithms and twilight calculations. Reference: [aa.usno.navy.mil](https://aa.usno.navy.mil/)
+- **PrayTimes.org** — Standard prayer time calculation methods and Fajr/Isha angle conventions. Reference: [praytimes.org](https://praytimes.org/)
+- **Muslim World League** — Fajr angle 18°, Isha angle 17°
+- **ISNA (Islamic Society of North America)** — Fajr angle 15°, Isha angle 15°
+- **Egyptian General Authority of Survey** — Fajr angle 19.5°, Isha angle 17.5°
+- **University of Islamic Sciences, Karachi** — Fajr angle 18°, Isha angle 18°
+- **Umm al-Qura University, Makkah** — Fajr angle 18.5°, Isha interval 90 minutes
+- **Moonsighting Committee** — Fajr angle 18°, Isha angle 18°, with seasonal adjustments
+
+### License
+
+This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+
+## Credits
+
+- **batoulapps** — original `adhan` implementation and calculation methods
+- **alphahm** — original `adhanpy` Python port
+- **Azahari Zaman** — community maintenance of `adhan-py`

@@ -23,6 +23,9 @@ Homepage = "https://github.com/nexusnv/adhan-py"
 Documentation = "https://github.com/nexusnv/adhan-py/blob/main/README.md"
 Changelog = "https://github.com/nexusnv/adhan-py/blob/main/CHANGES.md"
 
+[project.scripts]
+adhan = "adhan.__main__:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/adhan"]
 
