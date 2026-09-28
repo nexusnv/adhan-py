@@ -1,13 +1,13 @@
 import copy
 from typing import Optional
-from adhanpy.calculation.CalculationMethod import CalculationMethod
-from adhanpy.calculation.MethodsParameters import METHODS_PARAMETERS
-from adhanpy.calculation.Madhab import Madhab
-from adhanpy.calculation.HighLatitudeRule import HighLatitudeRule
-from adhanpy.calculation.PolarCircleRule import PolarCircleRule
-from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
-from adhanpy.data.NightPortions import NightPortions
-from adhanpy.exceptions import ConfigurationError, ValidationError
+from adhan.calculation.CalculationMethod import CalculationMethod
+from adhan.calculation.MethodsParameters import METHODS_PARAMETERS
+from adhan.calculation.Madhab import Madhab
+from adhan.calculation.HighLatitudeRule import HighLatitudeRule
+from adhan.calculation.PolarCircleRule import PolarCircleRule
+from adhan.calculation.PrayerAdjustments import PrayerAdjustments
+from adhan.data.NightPortions import NightPortions
+from adhan.exceptions import ConfigurationError, ValidationError
 
 
 class CalculationParameters:

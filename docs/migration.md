@@ -31,9 +31,9 @@ Catch sites matching on the old silent behavior need updating.
 - `Qibla(...).direction` (degrees clockwise from north).
 - `SunnahTimes(prayer_times)` (`.middle_of_the_night`,
   `.last_third_of_the_night`).
-- `python -m adhanpy` CLI (ISO-8601 UTC output).
+- `python -m adhan` CLI (ISO-8601 UTC output).
 - `py.typed`: downstream type-checkers now see annotations.
-- Public imports from the `adhanpy` root (`__all__`-pinned).
+- Public imports from the `adhan` root (`__all__`-pinned).
 - Per-instance `method_adjustments` (no longer shared globals).
 
 ## Unchanged
@@ -46,4 +46,4 @@ above: same angles, methods, and twilight tables as upstream.
 Failures previously raised builtin `RuntimeError`/`ValueError`/
 `TypeError` now raise `AdhanError` subclasses (`AstronomicalError`,
 `ConfigurationError`, `ValidationError`) with identical messages.
-Before: `except RuntimeError:` / After: `except adhanpy.AstronomicalError:`.
+Before: `except RuntimeError:` / After: `except adhan.AstronomicalError:`.

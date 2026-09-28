@@ -3,23 +3,23 @@ import math
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from zoneinfo import ZoneInfo
-from adhanpy.calculation.CalculationMethod import CalculationMethod
-from adhanpy.calculation.CalculationParameters import CalculationParameters
-from adhanpy.calculation.Madhab import Madhab
-from adhanpy.calculation.PolarCircleRule import PolarCircleRule
-from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
-from adhanpy.exceptions import AstronomicalError, ConfigurationError
-from adhanpy.calculation.Twilight import (
+from adhan.calculation.CalculationMethod import CalculationMethod
+from adhan.calculation.CalculationParameters import CalculationParameters
+from adhan.calculation.Madhab import Madhab
+from adhan.calculation.PolarCircleRule import PolarCircleRule
+from adhan.calculation.PrayerAdjustments import PrayerAdjustments
+from adhan.exceptions import AstronomicalError, ConfigurationError
+from adhan.calculation.Twilight import (
     season_adjusted_evening_twilight,
     season_adjusted_morning_twilight,
 )
-from adhanpy.astronomy.SolarTime import SolarTime
-from adhanpy.data.Coordinates import Coordinates
-from adhanpy.data.Prayer import Prayer
-from adhanpy.Qibla import MAKKAH
-from adhanpy.util.TimeComponents import TimeComponents
-from adhanpy.util.DateComponents import DateComponents
-from adhanpy.util.CalendarUtil import rounded_minute
+from adhan.astronomy.SolarTime import SolarTime
+from adhan.data.Coordinates import Coordinates
+from adhan.data.Prayer import Prayer
+from adhan.Qibla import MAKKAH
+from adhan.util.TimeComponents import TimeComponents
+from adhan.util.DateComponents import DateComponents
+from adhan.util.CalendarUtil import rounded_minute
 
 
 def _schedule_defined(

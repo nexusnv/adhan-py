@@ -1,7 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from adhanpy.calculation import CalculationMethod
-from adhanpy.PrayerTimes import PrayerTimes
+from adhan.calculation import CalculationMethod
+from adhan.PrayerTimes import PrayerTimes
 
 
 def print_prayer_times(when: datetime, prayer_times: PrayerTimes) -> None:

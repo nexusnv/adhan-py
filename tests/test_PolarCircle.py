@@ -1,15 +1,15 @@
 import pytest
 from datetime import date
-from adhanpy import PrayerTimes
-from adhanpy.calculation import (
+from adhan import PrayerTimes
+from adhan.calculation import (
     CalculationMethod,
     CalculationParameters,
     PolarCircleRule,
 )
-from adhanpy.data.Coordinates import Coordinates
-from adhanpy.exceptions import ConfigurationError
-from adhanpy.Qibla import MAKKAH
-from adhanpy.util.DateComponents import DateComponents
+from adhan.data.Coordinates import Coordinates
+from adhan.exceptions import ConfigurationError
+from adhan.Qibla import MAKKAH
+from adhan.util.DateComponents import DateComponents
 
 TROMSO = (69.65, 18.96)
 SUMMER = DateComponents(2015, 6, 21)

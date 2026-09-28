@@ -1,6 +1,6 @@
 import pytest
-from adhanpy.calculation.Madhab import Madhab
-from adhanpy.exceptions import ConfigurationError
+from adhan.calculation.Madhab import Madhab
+from adhan.exceptions import ConfigurationError
 
 
 def test_shafi_shadow_length():

@@ -1,17 +1,17 @@
 import math
 import pytest
 from datetime import datetime, timezone
-from adhanpy.data.Coordinates import Coordinates
-from adhanpy.util.DateComponents import DateComponents
-from adhanpy.calculation.CalculationMethod import CalculationMethod
-from adhanpy.calculation.CalculationParameters import CalculationParameters
-from adhanpy.astronomy.SolarTime import SolarTime
-from adhanpy.util.TimeComponents import TimeComponents
-from adhanpy.calculation.Madhab import Madhab
-from adhanpy.calculation.PolarCircleRule import PolarCircleRule
-from adhanpy.PrayerTimes import PrayerTimes
-from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
-from adhanpy.exceptions import AstronomicalError, ConfigurationError
+from adhan.data.Coordinates import Coordinates
+from adhan.util.DateComponents import DateComponents
+from adhan.calculation.CalculationMethod import CalculationMethod
+from adhan.calculation.CalculationParameters import CalculationParameters
+from adhan.astronomy.SolarTime import SolarTime
+from adhan.util.TimeComponents import TimeComponents
+from adhan.calculation.Madhab import Madhab
+from adhan.calculation.PolarCircleRule import PolarCircleRule
+from adhan.PrayerTimes import PrayerTimes
+from adhan.calculation.PrayerAdjustments import PrayerAdjustments
+from adhan.exceptions import AstronomicalError, ConfigurationError
 from zoneinfo import ZoneInfo
 
 

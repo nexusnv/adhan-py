@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import pytest
-import adhanpy.util.CalendarUtil as CalendarUtil
+import adhan.util.CalendarUtil as CalendarUtil
 
 
 def test_rounding_when_second_is_less_than_30():

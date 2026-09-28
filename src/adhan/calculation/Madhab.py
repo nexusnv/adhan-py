@@ -1,6 +1,6 @@
 from enum import Enum
-from adhanpy.data.ShadowLength import ShadowLength
-from adhanpy.exceptions import ConfigurationError
+from adhan.data.ShadowLength import ShadowLength
+from adhan.exceptions import ConfigurationError
 
 
 class Madhab(Enum):

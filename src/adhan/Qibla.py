@@ -1,6 +1,6 @@
 import math
-from adhanpy.data.Coordinates import Coordinates
-from adhanpy.util.FloatUtil import unwind_angle
+from adhan.data.Coordinates import Coordinates
+from adhan.util.FloatUtil import unwind_angle
 
 MAKKAH = Coordinates(21.4225241, 39.8261818)
 

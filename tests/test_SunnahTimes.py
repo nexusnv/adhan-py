@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
-from adhanpy import PrayerTimes, SunnahTimes
-from adhanpy.calculation import CalculationMethod, CalculationParameters
-from adhanpy.util.DateComponents import DateComponents
+from adhan import PrayerTimes, SunnahTimes
+from adhan.calculation import CalculationMethod, CalculationParameters
+from adhan.util.DateComponents import DateComponents
 
 
 def _prayer_times():

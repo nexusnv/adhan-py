@@ -1,5 +1,5 @@
 import pytest
-import adhanpy.util.FloatUtil as FloatUtil
+import adhan.util.FloatUtil as FloatUtil
 
 
 @pytest.mark.parametrize(

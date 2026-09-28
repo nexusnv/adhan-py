@@ -1,6 +1,6 @@
 import pytest
-from adhanpy import Qibla
-from adhanpy.data.Coordinates import Coordinates
+from adhan import Qibla
+from adhan.data.Coordinates import Coordinates
 
 
 @pytest.mark.parametrize(

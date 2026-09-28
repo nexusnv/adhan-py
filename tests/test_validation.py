@@ -1,9 +1,9 @@
 import pytest
-from adhanpy import PrayerTimes
-from adhanpy.calculation import CalculationMethod, CalculationParameters
-from adhanpy.data.Coordinates import Coordinates
-from adhanpy.exceptions import ValidationError
-from adhanpy.util.DateComponents import DateComponents
+from adhan import PrayerTimes
+from adhan.calculation import CalculationMethod, CalculationParameters
+from adhan.data.Coordinates import Coordinates
+from adhan.exceptions import ValidationError
+from adhan.util.DateComponents import DateComponents
 
 
 @pytest.mark.parametrize(

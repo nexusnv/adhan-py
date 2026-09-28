@@ -3,7 +3,7 @@ import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-from adhanpy.util.DateComponents import DateComponents
+from adhan.util.DateComponents import DateComponents
 
 
 @dataclass

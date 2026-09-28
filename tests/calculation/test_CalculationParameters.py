@@ -1,9 +1,9 @@
 import pytest
-from adhanpy.calculation.CalculationMethod import CalculationMethod
-from adhanpy.calculation.CalculationParameters import CalculationParameters
-from adhanpy.calculation.HighLatitudeRule import HighLatitudeRule
-from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
-from adhanpy.exceptions import ConfigurationError
+from adhan.calculation.CalculationMethod import CalculationMethod
+from adhan.calculation.CalculationParameters import CalculationParameters
+from adhan.calculation.HighLatitudeRule import HighLatitudeRule
+from adhan.calculation.PrayerAdjustments import PrayerAdjustments
+from adhan.exceptions import ConfigurationError
 
 
 @pytest.mark.parametrize(

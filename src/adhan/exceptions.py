@@ -1,5 +1,5 @@
 class AdhanError(Exception):
-    """Base class for all adhanpy errors."""
+    """Base class for all adhan errors."""
 
 
 class AstronomicalError(AdhanError):

@@ -1,13 +1,13 @@
 import argparse
 from datetime import datetime, timezone
 
-from adhanpy import CalculationMethod, Prayer, PrayerTimes
-from adhanpy.data import Coordinates
+from adhan import CalculationMethod, Prayer, PrayerTimes
+from adhan.data import Coordinates
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="adhanpy",
+        prog="adhan",
         description="Print prayer times (ISO-8601, UTC) for a location and date.",
     )
     parser.add_argument("--latitude", type=float, required=True)

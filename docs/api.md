@@ -3,7 +3,7 @@
 All public names are importable from the package root:
 
 ```python
-from adhanpy import (
+from adhan import (
     PrayerTimes, Qibla, SunnahTimes,
     CalculationMethod, CalculationParameters,
     HighLatitudeRule, Madhab, PrayerAdjustments,
@@ -11,7 +11,7 @@ from adhanpy import (
 )
 ```
 
-(`adhanpy.astronomy` and `adhanpy.util` are internal implementation
+(`adhan.astronomy` and `adhan.util` are internal implementation
 details and not part of the public surface.)
 
 ## PrayerTimes
@@ -104,7 +104,7 @@ CalculationParameters(method=None, adjustments=None,
 ## CLI
 
 ```bash
-python -m adhanpy --latitude 35.7750 --longitude -78.6336 \
+python -m adhan --latitude 35.7750 --longitude -78.6336 \
   --date 2015-07-12 --method NORTH_AMERICA
 ```
 
@@ -113,7 +113,7 @@ Prints `name=ISO-8601` lines in UTC (`--date` defaults to today).
 ## Errors
 
 `AdhanError` is the base for all library errors (importable from the
-`adhanpy` root). Subclasses: `AstronomicalError` (polar day/night,
+`adhan` root). Subclasses: `AstronomicalError` (polar day/night,
 undefined Asr), `ConfigurationError` (bad method/madhab/polar rule/
 prayer/high-latitude rule, method-vs-parameters exclusivity),
 `ValidationError` (out-of-range coordinates, angles, intervals).

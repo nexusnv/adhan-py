@@ -1,8 +1,8 @@
 import math
 import pytest
 from datetime import datetime, timezone
-from adhanpy.util.DateComponents import DateComponents
-from adhanpy.util.TimeComponents import TimeComponents
+from adhan.util.DateComponents import DateComponents
+from adhan.util.TimeComponents import TimeComponents
 
 
 @pytest.mark.parametrize(

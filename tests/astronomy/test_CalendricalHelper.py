@@ -1,5 +1,5 @@
 import pytest
-import adhanpy.astronomy.CalendricalHelper as CalendricalHelper
+import adhan.astronomy.CalendricalHelper as CalendricalHelper
 
 
 @pytest.mark.parametrize(

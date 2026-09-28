@@ -1,5 +1,5 @@
-from adhanpy.data.Coordinates import Coordinates
-from adhanpy.util.FloatUtil import closest_angle, unwind_angle, normalize_with_bound
+from adhan.data.Coordinates import Coordinates
+from adhan.util.FloatUtil import closest_angle, unwind_angle, normalize_with_bound
 import math
 
 

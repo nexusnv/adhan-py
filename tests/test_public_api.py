@@ -1,15 +1,15 @@
 import pytest
 
-import adhanpy
-from adhanpy import PrayerTimes as RootPrayerTimes
-from adhanpy import Qibla, SunnahTimes
-from adhanpy.exceptions import (
+import adhan
+from adhan import PrayerTimes as RootPrayerTimes
+from adhan import Qibla, SunnahTimes
+from adhan.exceptions import (
     AdhanError,
     AstronomicalError,
     ConfigurationError,
     ValidationError,
 )
-from adhanpy.calculation import (
+from adhan.calculation import (
     CalculationMethod,
     CalculationParameters,
     HighLatitudeRule,
@@ -17,13 +17,13 @@ from adhanpy.calculation import (
     PolarCircleRule,
     PrayerAdjustments,
 )
-from adhanpy.data import Coordinates, NightPortions, Prayer, ShadowLength
-from adhanpy.PrayerTimes import PrayerTimes
-from adhanpy.util.DateComponents import DateComponents
+from adhan.data import Coordinates, NightPortions, Prayer, ShadowLength
+from adhan.PrayerTimes import PrayerTimes
+from adhan.util.DateComponents import DateComponents
 
 
 def test_root_exports_match_all():
-    assert getattr(adhanpy, "__all__") == [
+    assert getattr(adhan, "__all__") == [
         "AdhanError",
         "AstronomicalError",
         "ConfigurationError",
@@ -56,12 +56,12 @@ def test_root_exports_match_all():
         "PrayerAdjustments": PrayerAdjustments,
         "Coordinates": Coordinates,
         "Prayer": Prayer,
-    } == {name: getattr(adhanpy, name) for name in adhanpy.__all__}
-    assert adhanpy.PrayerTimes is RootPrayerTimes
+    } == {name: getattr(adhan, name) for name in adhan.__all__}
+    assert adhan.PrayerTimes is RootPrayerTimes
 
 
 def test_subpackage_exports():
-    from adhanpy import calculation, data
+    from adhan import calculation, data
 
     assert {
         "CalculationMethod": CalculationMethod,
@@ -119,7 +119,7 @@ def test_docs_cover_public_api():
         encoding="utf-8"
     )
 
-    for name in adhanpy.__all__:
+    for name in adhan.__all__:
         assert re.search(rf"\b{name}\b", api_docs), name
     for name in ("time_for_prayer", "Qibla", "SunnahTimes"):
         assert re.search(rf"\b{name}\b", api_docs), name

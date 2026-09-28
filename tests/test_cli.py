@@ -2,7 +2,7 @@ import subprocess
 import sys
 
 import pytest
-from adhanpy.__main__ import main
+from adhan.__main__ import main
 
 
 def test_cli_prints_iso_times(capsys):
@@ -77,9 +77,9 @@ def test_cli_requires_coordinates():
 
 
 def test_cli_module_entry_point():
-    # smoke test: the installed package runs as python -m adhanpy
+    # smoke test: the installed package runs as python -m adhan
     result = subprocess.run(
-        [sys.executable, "-m", "adhanpy", "--latitude", "35", "--longitude", "-78"],
+        [sys.executable, "-m", "adhan", "--latitude", "35", "--longitude", "-78"],
         capture_output=True,
         text=True,
     )

@@ -1,5 +1,5 @@
 import pytest
-from adhanpy.exceptions import (
+from adhan.exceptions import (
     AdhanError,
     AstronomicalError,
     ConfigurationError,

@@ -1,7 +1,7 @@
 from typing import Any
 
-from adhanpy.calculation.CalculationMethod import CalculationMethod
-from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
+from adhan.calculation.CalculationMethod import CalculationMethod
+from adhan.calculation.PrayerAdjustments import PrayerAdjustments
 
 METHODS_PARAMETERS: dict[CalculationMethod, dict[str, Any]] = {
     CalculationMethod.NONE: {},

@@ -1,10 +1,10 @@
 import math
 import pytest
-import adhanpy.astronomy.Astronomical as Astronomical
-import adhanpy.util.FloatUtil as FloatUtil
-import adhanpy.astronomy.CalendricalHelper as CalendricalHelper
-from adhanpy.astronomy.SolarCoordinates import SolarCoordinates
-from adhanpy.data.Coordinates import Coordinates
+import adhan.astronomy.Astronomical as Astronomical
+import adhan.util.FloatUtil as FloatUtil
+import adhan.astronomy.CalendricalHelper as CalendricalHelper
+from adhan.astronomy.SolarCoordinates import SolarCoordinates
+from adhan.data.Coordinates import Coordinates
 
 
 def test_solar_coordinates():

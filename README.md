@@ -1,7 +1,7 @@
-# adhanpy
+# adhan-py
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
-![pytest](https://github.com/alphahm/adhanpy/actions/workflows/test.yml/badge.svg)
+![pytest](https://github.com/nexusnv/adhan-py/actions/workflows/test.yml/badge.svg)
 
 This is a port of [batoulapps/adhan-java](https://github.com/batoulapps/adhan-java), a prayer times program, from Java to Python.
 As it stands the project reuses most of the structure of the original project but may differ through refactoring and in an effort
@@ -36,7 +36,7 @@ resolve IANA time zones (`pip install tzdata`).
 ## Installation
 
 ```
-pip install adhanpy
+pip install adhan-py
 ```
 
 ## Usage
@@ -50,7 +50,7 @@ prayer_times = PrayerTimes(coordinates, today, CalculationMethod.MOON_SIGHTING_C
 Public names are re-exported from the package root, so this also works:
 
 ```python
-from adhanpy import PrayerTimes, CalculationMethod, Prayer
+from adhan import PrayerTimes, CalculationMethod, Prayer
 
 prayer_times = PrayerTimes(coordinates, today, CalculationMethod.MOON_SIGHTING_COMMITTEE)
 print(prayer_times.time_for_prayer(Prayer.FAJR))
@@ -59,7 +59,7 @@ print(prayer_times.time_for_prayer(Prayer.FAJR))
 Qibla direction (degrees clockwise from north) for a location:
 
 ```python
-from adhanpy import Qibla
+from adhan import Qibla
 
 print(Qibla(coordinates).direction)
 ```
@@ -67,7 +67,7 @@ print(Qibla(coordinates).direction)
 Sunnah night markers (middle and last third of the night):
 
 ```python
-from adhanpy import SunnahTimes
+from adhan import SunnahTimes
 
 sunnah_times = SunnahTimes(prayer_times)
 print(sunnah_times.middle_of_the_night)
@@ -138,14 +138,14 @@ A full example is located in `src/example` of the project directory.
 ## Command line
 
 ```bash
-python -m adhanpy --latitude 35.7750 --longitude -78.6336 --date 2015-07-12 --method NORTH_AMERICA
+python -m adhan --latitude 35.7750 --longitude -78.6336 --date 2015-07-12 --method NORTH_AMERICA
 ```
 
 prints each marker as ISO-8601 UTC (`--date` defaults to today).
 
 ## Development
 
-To install adhanpy for development purposes, run the following:
+To install adhan-py for development purposes, run the following:
 
 ```
 python3 -m virtualenv venv

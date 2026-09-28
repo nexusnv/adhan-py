@@ -22,7 +22,7 @@
 * Require Python `>=3.11`; CI matrix is now 3.11–3.13 with refreshed dev pins.
 * Ship `py.typed` (PEP 561) and complete type annotations; the package
   is now `mypy --disallow-untyped-defs` clean with no runtime changes.
-* Define the public API surface (`adhanpy.__all__` plus `calculation`
+* Define the public API surface (`adhan.__all__` plus `calculation`
   and `data` re-exports) and add `PrayerTimes.time_for_prayer(Prayer)`.
 * Add `Qibla` direction calculation ported from upstream adhan.
 * Add polar-day/night estimation strategies (`PolarCircleRule`:
@@ -30,7 +30,7 @@
   keep the old raise).
 * Add `SunnahTimes` (middle and last third of the night) ported
   from upstream adhan.
-* Add `python -m adhanpy` CLI printing ISO-8601 UTC markers.
+* Add `python -m adhan` CLI printing ISO-8601 UTC markers.
 * Validate inputs: coordinates within [-90, 90]/[-180, 180], angles
   within [0, 90], non-negative Isha interval.
 * Build backend is now hatchling (setup.py removed); CI covers
@@ -41,11 +41,11 @@
   `tests/`, and `mypy --disallow-untyped-defs` enforced via config.
 
 ## v1.0.5
-* Fix [#16](https://github.com/alphahm/adhanpy/issues/16) where method is either not provided or
+* Fix [#16](https://github.com/alphahm/adhan/issues/16) where method is either not provided or
 explicitly set to `None` when initialising `CalculationParameters` results in an `AttributeError`
 in `PrayerTimes`
 
 ## v1.0.4
-* Fix [#4](https://github.com/alphahm/adhanpy/issues/4) where rounding of minutes function tried to
+* Fix [#4](https://github.com/alphahm/adhan/issues/4) where rounding of minutes function tried to
 incorrectly set 60 for minutes on a datetime object.
 * Bring support for Python 3.9

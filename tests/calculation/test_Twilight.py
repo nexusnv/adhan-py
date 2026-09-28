@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import pytest
-from adhanpy.calculation.Twilight import (
+from adhan.calculation.Twilight import (
     days_since_solstice,
     season_adjusted_evening_twilight,
     season_adjusted_morning_twilight,

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
-from adhanpy.PrayerTimes import PrayerTimes
-from adhanpy.util.CalendarUtil import rounded_minute
+from adhan.PrayerTimes import PrayerTimes
+from adhan.util.CalendarUtil import rounded_minute
 
 
 class SunnahTimes:

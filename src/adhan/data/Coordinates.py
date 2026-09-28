@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from adhanpy.exceptions import ValidationError
+from adhan.exceptions import ValidationError
 
 
 @dataclass

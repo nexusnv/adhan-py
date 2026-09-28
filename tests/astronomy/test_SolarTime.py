@@ -1,8 +1,8 @@
 from datetime import datetime, timezone, timedelta
-from adhanpy.data.Coordinates import Coordinates
-from adhanpy.util.DateComponents import DateComponents
-from adhanpy.util.TimeComponents import TimeComponents
-from adhanpy.astronomy.SolarTime import SolarTime
+from adhan.data.Coordinates import Coordinates
+from adhan.util.DateComponents import DateComponents
+from adhan.util.TimeComponents import TimeComponents
+from adhan.astronomy.SolarTime import SolarTime
 
 
 def test_solar_time():
