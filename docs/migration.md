@@ -40,3 +40,10 @@ Catch sites matching on the old silent behavior need updating.
 
 Calculation math itself is untouched apart from the rounding fix
 above: same angles, methods, and twilight tables as upstream.
+
+## 2.0.0 breaking change: AdhanError tree
+
+Failures previously raised builtin `RuntimeError`/`ValueError`/
+`TypeError` now raise `AdhanError` subclasses (`AstronomicalError`,
+`ConfigurationError`, `ValidationError`) with identical messages.
+Before: `except RuntimeError:` / After: `except adhanpy.AstronomicalError:`.

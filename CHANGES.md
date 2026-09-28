@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0
+* Breaking: dedicated `AdhanError` hierarchy replaces builtins
+  (`AstronomicalError`, `ConfigurationError`, `ValidationError`);
+  messages unchanged. The internal isha-interval `ValueError` is untouched.
+
 ## Unreleased
 * Fix hour-rollover in `rounded_minute` (`10:59:31` now rounds to `11:00`),
   use half-up rounding at exactly 30 seconds, and zero microseconds.

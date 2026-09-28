@@ -9,8 +9,18 @@ from adhanpy.calculation.PolarCircleRule import PolarCircleRule
 from adhanpy.calculation.PrayerAdjustments import PrayerAdjustments
 from adhanpy.data.Coordinates import Coordinates
 from adhanpy.data.Prayer import Prayer
+from adhanpy.exceptions import (
+    AdhanError,
+    AstronomicalError,
+    ConfigurationError,
+    ValidationError,
+)
 
 __all__ = [
+    "AdhanError",
+    "AstronomicalError",
+    "ConfigurationError",
+    "ValidationError",
     "PrayerTimes",
     "Qibla",
     "SunnahTimes",
