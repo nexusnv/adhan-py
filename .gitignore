@@ -1,8 +1,40 @@
-__pycache__
-venv
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
 *.egg-info/
-dist
-build
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
 .coverage
-.idea
+htmlcov/
+
+# Type checking
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
 *.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs
+site/
+docs_site/dist/
+docs_site/node_modules/
+docs_site/.astro/
