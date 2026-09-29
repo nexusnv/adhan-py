@@ -27,8 +27,8 @@ def main() -> None:
     for rule, description in rules:
         params = CalculationParameters(
             method=CalculationMethod.MUSLIM_WORLD_LEAGUE,
-            high_latitude_rule=rule,
         )
+        params.high_latitude_rule = rule
         pt = PrayerTimes(coordinates, today, calculation_parameters=params)
 
         print(f"  {description}:")

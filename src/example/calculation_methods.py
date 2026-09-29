@@ -25,7 +25,9 @@ def main() -> None:
     print(f"Calculation methods comparison for {today.strftime('%Y-%m-%d')}")
     print(f"Location: ({coordinates[0]}, {coordinates[1]})")
     print()
-    print(f"{'Method':<30} {'Fajr':>8} {'Sunrise':>8} {'Dhuhr':>8} {'Asr':>8} {'Maghrib':>8} {'Isha':>8}")
+    print(
+        f"{'Method':<30} {'Fajr':>8} {'Sunrise':>8} {'Dhuhr':>8} {'Asr':>8} {'Maghrib':>8} {'Isha':>8}"
+    )
     print("-" * 90)
 
     for method in methods:

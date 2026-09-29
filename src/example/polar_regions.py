@@ -15,7 +15,9 @@ def main() -> None:
         (PolarCircleRule.MAKKAH, "Makkah"),
     ]
 
-    print(f"Polar region strategies for Longyearbyen ({coordinates[0]}, {coordinates[1]})")
+    print(
+        f"Polar region strategies for Longyearbyen ({coordinates[0]}, {coordinates[1]})"
+    )
     print(f"Date: {today.strftime('%Y-%m-%d')}")
     print()
 
