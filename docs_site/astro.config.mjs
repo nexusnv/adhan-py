@@ -94,7 +94,12 @@ export default defineConfig({
         },
       ],
       plugins: versionsConfig.versions.length
-        ? [starlightVersions({ versions: versionsConfig.versions, current: { label: versionsConfig.latest.label } })]
+        ? [
+            starlightVersions({
+              versions: versionsConfig.versions,
+              current: { label: versionsConfig.latest.label },
+            }),
+          ]
         : [],
     }),
   ],
