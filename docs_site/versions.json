@@ -1,8 +1,8 @@
 {
-  "versions": [],
+  "versions": [{ "slug": "2.0", "label": "v2.0" }],
   "latest": {
     "slug": "latest",
-    "label": "latest",
+    "label": "v2.0.0",
     "source_ref": "main"
   }
 }

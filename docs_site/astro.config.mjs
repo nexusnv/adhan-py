@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightVersions from 'starlight-versions';
 import versionsConfig from './versions.json' with { type: 'json' };
 
 // https://astro.build/config
