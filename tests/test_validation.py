@@ -1,8 +1,8 @@
 import pytest
-from adhan import PrayerTimes
+from adhan import PrayerTimes, Qibla
 from adhan.calculation import CalculationMethod, CalculationParameters
 from adhan.data.Coordinates import Coordinates
-from adhan.exceptions import ValidationError
+from adhan.exceptions import AdhanError, ValidationError
 from adhan.util.DateComponents import DateComponents
 
 
@@ -57,3 +57,43 @@ def test_out_of_range_parameters_rejected(kwargs):
 )
 def test_boundary_parameters_accepted(kwargs):
     CalculationParameters(**kwargs)
+
+
+@pytest.mark.parametrize(
+    "latitude, longitude",
+    [("a", "b"), (None, None), (float("nan"), "b"), (True, False)],
+)
+def test_non_numeric_coordinates_rejected(latitude, longitude):
+    with pytest.raises(ValidationError, match="(?i)real number|latitude|longitude"):
+        Coordinates(latitude, longitude)
+
+
+@pytest.mark.parametrize(
+    "coordinates",
+    [("a", "b"), (None, None), (35.7,), (), None, 35.7, (True, False)],
+)
+def test_malformed_coordinates_rejected_by_prayer_times(coordinates):
+    with pytest.raises(ValidationError, match="(?i)coordinates|real number"):
+        PrayerTimes(
+            coordinates,
+            DateComponents(2015, 7, 12),
+            CalculationMethod.MUSLIM_WORLD_LEAGUE,
+        )
+
+
+def test_malformed_coordinates_rejected_by_qibla():
+    with pytest.raises(ValidationError, match="(?i)coordinates|real number"):
+        Qibla(("a", "b"))
+
+
+def test_malformed_coordinates_are_adhan_errors():
+    try:
+        PrayerTimes(
+            ("a", "b"),
+            DateComponents(2015, 7, 12),
+            CalculationMethod.MUSLIM_WORLD_LEAGUE,
+        )
+    except AdhanError:
+        pass
+    else:
+        pytest.fail("expected AdhanError")

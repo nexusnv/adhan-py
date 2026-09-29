@@ -8,7 +8,7 @@ from adhan.calculation.CalculationParameters import CalculationParameters
 from adhan.calculation.Madhab import Madhab
 from adhan.calculation.PolarCircleRule import PolarCircleRule
 from adhan.calculation.PrayerAdjustments import PrayerAdjustments
-from adhan.exceptions import AstronomicalError, ConfigurationError
+from adhan.exceptions import AstronomicalError, ConfigurationError, ValidationError
 from adhan.calculation.Twilight import (
     season_adjusted_evening_twilight,
     season_adjusted_morning_twilight,
@@ -78,11 +78,21 @@ def _nearest_date_with_sunrise_sunset(
             if _schedule_defined(candidate, coordinates):
                 return candidate
     raise AstronomicalError(  # pragma: no cover - every location has rise/set days
-        "No date with sunrise/sunset found within a year."
+        "No date with sunrise/sunset found within a year. "
+        "At the exact geographic poles (|latitude| == 90) the sun's "
+        "hour-angle is singular and no such date exists numerically; "
+        "use PolarCircleRule.NEAREST_LATITUDE or MAKKAH instead."
     )
 
 
 class PrayerTimes:
+    fajr: datetime
+    sunrise: datetime
+    dhuhr: datetime
+    asr: datetime
+    maghrib: datetime
+    isha: datetime
+
     def __init__(
         self,
         coordinates: tuple[float, float] | Coordinates,
@@ -114,7 +124,13 @@ class PrayerTimes:
         if isinstance(coordinates, Coordinates):
             self.coordinates = coordinates
         else:
-            latitude, longitude = coordinates
+            try:
+                latitude, longitude = coordinates
+            except (TypeError, ValueError) as e:
+                raise ValidationError(
+                    "Coordinates must be a (latitude, longitude) tuple or "
+                    f"Coordinates, got {coordinates!r}."
+                ) from e
             self.coordinates = Coordinates(latitude, longitude)
         self._date_components = DateComponents.from_utc(date)
         self.time_zone = time_zone
@@ -196,6 +212,11 @@ class PrayerTimes:
         self._set_dhuhr(transit)
         self._set_asr()
         self._set_maghrib()
+        if self.asr > self.maghrib:
+            # Near the polar boundary the shadow-length hour angle can spill
+            # past sunset (Asr lands after Maghrib); Asr cannot follow
+            # Maghrib. Mirrors the Asr<Dhuhr saturation in _set_asr.
+            self.asr = self.maghrib
         self._set_isha(self._sunset_components)
 
         self._adjust_prayers_time_zone()

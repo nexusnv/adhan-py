@@ -1,5 +1,6 @@
 import math
 from adhan.data.Coordinates import Coordinates
+from adhan.exceptions import ValidationError
 from adhan.util.FloatUtil import unwind_angle
 
 MAKKAH = Coordinates(21.4225241, 39.8261818)
@@ -16,7 +17,17 @@ class Qibla:
             latitude = coordinates.latitude
             longitude = coordinates.longitude
         else:
-            latitude, longitude = coordinates
+            try:
+                latitude, longitude = coordinates
+            except (TypeError, ValueError) as e:
+                raise ValidationError(
+                    "Coordinates must be a (latitude, longitude) tuple or "
+                    f"Coordinates, got {coordinates!r}."
+                ) from e
+            # Reuse Coordinates validation so non-numeric inputs raise
+            # ValidationError (not bare TypeError), per the AdhanError contract.
+            validated = Coordinates(latitude, longitude)
+            latitude, longitude = validated.latitude, validated.longitude
 
         # Equation from "Spherical Trigonometry For the use of colleges
         # and schools" page 50

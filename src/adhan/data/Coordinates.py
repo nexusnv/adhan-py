@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from decimal import Decimal
+import numbers
 
 from adhan.exceptions import ValidationError
 
@@ -9,6 +11,14 @@ class Coordinates:
     longitude: float
 
     def __post_init__(self) -> None:
+        for name, value in (
+            ("Latitude", self.latitude),
+            ("Longitude", self.longitude),
+        ):
+            if isinstance(value, bool) or not isinstance(
+                value, (numbers.Real, Decimal)
+            ):
+                raise ValidationError(f"{name} must be a real number, got {value!r}.")
         if not -90 <= self.latitude <= 90:
             raise ValidationError(
                 f"Latitude must be within [-90, 90], got {self.latitude}."
