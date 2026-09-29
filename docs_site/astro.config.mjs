@@ -1,11 +1,16 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import { versionsConfig } from './versions.json';
+import versionsConfig from './versions.json' with { type: 'json' };
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://nexusnv.github.io',
   base: '/adhan-py',
+  vite: {
+    resolve: {
+      preserveSymlinks: true,
+    },
+  },
   integrations: [
     starlight({
       title: 'adhan-py',
@@ -13,9 +18,9 @@ export default defineConfig({
       logo: {
         src: './public/favicon.svg',
       },
-      social: {
-        github: 'https://github.com/nexusnv/adhan-py',
-      },
+      social: [
+        { label: 'GitHub', href: 'https://github.com/nexusnv/adhan-py', icon: 'github' },
+      ],
       editLink: {
         baseUrl: 'https://github.com/nexusnv/adhan-py/edit/main/docs/user/',
       },
