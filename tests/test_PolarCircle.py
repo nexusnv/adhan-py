@@ -7,9 +7,10 @@ from adhan.calculation import (
     PolarCircleRule,
 )
 from adhan.data.Coordinates import Coordinates
-from adhan.exceptions import ConfigurationError
+from adhan.exceptions import AstronomicalError, ConfigurationError
 from adhan.Qibla import MAKKAH
 from adhan.util.DateComponents import DateComponents
+from support import is_ordered as _ordered
 
 TROMSO = (69.65, 18.96)
 SUMMER = DateComponents(2015, 6, 21)
@@ -18,19 +19,6 @@ WINTER = DateComponents(2015, 12, 21)
 
 def _params(**kwargs):
     return CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE, **kwargs)
-
-
-def _ordered(prayer_times):
-    # Only Dhuhr/Asr may coincide (documented saturation); every other
-    # adjacent pair is strictly increasing on all covered cases.
-    return (
-        prayer_times.fajr
-        < prayer_times.sunrise
-        < prayer_times.dhuhr
-        <= prayer_times.asr
-        < prayer_times.maghrib
-        < prayer_times.isha
-    )
 
 
 @pytest.mark.parametrize("date", [SUMMER, WINTER])
@@ -134,3 +122,26 @@ def test_extreme_adjustments_saturate_asr_to_dhuhr():
 
     assert prayer_times.asr == prayer_times.dhuhr
     assert _ordered(prayer_times)
+
+
+def test_asr_saturates_to_maghrib_near_polar_boundary():
+    # 89.1N on 2024-03-19: shadow-length hour angle spills past sunset
+    # without the maghrib-side clamp (Asr 22:12 > Maghrib 21:22).
+    prayer_times = PrayerTimes(
+        (89.1, 0.0),
+        DateComponents(2024, 3, 19),
+        calculation_parameters=_params(polar_circle_rule=PolarCircleRule.NONE),
+    )
+
+    assert prayer_times.asr == prayer_times.maghrib
+
+
+@pytest.mark.parametrize("lat", [90.0, -90.0])
+def test_nearest_day_at_exact_pole_raises_actionable_error(lat):
+    params = _params(polar_circle_rule=PolarCircleRule.NEAREST_DAY)
+    with pytest.raises(AstronomicalError, match="(?i)exact.*pole|NEAREST_LATITUDE"):
+        PrayerTimes(
+            (lat, 0.0),
+            DateComponents(2024, 6, 21),
+            calculation_parameters=params,
+        )

@@ -1,6 +1,7 @@
 import math
 import pytest
 from datetime import datetime, timezone
+from unittest.mock import patch
 from adhan.data.Coordinates import Coordinates
 from adhan.util.DateComponents import DateComponents
 from adhan.calculation.CalculationMethod import CalculationMethod
@@ -49,26 +50,24 @@ def test_either_calculation_method_or_calculation_parameters_is_passed():
         PrayerTimes(coordinates, date, method, params)
 
 
-def test_when_transit_or_sunrise_components_or_sunset_components_or_tomorrow_sunrise_components_is_none_it_should_raise_exception(
-    mocker,
-):
+def test_when_transit_or_sunrise_components_or_sunset_components_or_tomorrow_sunrise_components_is_none_it_should_raise_exception():
     date = DateComponents(2015, 7, 12)
-    mocker.patch.object(TimeComponents, "from_float", lambda e: None)
     method = CalculationMethod.NORTH_AMERICA
     coordinates = (35.7750, -78.6336)
 
-    with pytest.raises(AstronomicalError):
-        PrayerTimes(coordinates, date, method)
+    with patch.object(TimeComponents, "from_float", lambda e: None):
+        with pytest.raises(AstronomicalError, match="(?i)polar day/night"):
+            PrayerTimes(coordinates, date, method)
 
 
-def test_when_asr_is_not_set_raise_exception(mocker):
+def test_when_asr_is_not_set_raise_exception():
     date = DateComponents(2015, 7, 12)
-    mocker.patch.object(SolarTime, "afternoon", lambda e, f: math.inf)
     method = CalculationMethod.NORTH_AMERICA
     coordinates = (35.7750, -78.6336)
 
-    with pytest.raises(AstronomicalError):
-        PrayerTimes(coordinates, date, method)
+    with patch.object(SolarTime, "afternoon", lambda e, f: math.inf):
+        with pytest.raises(AstronomicalError, match="Unable to compute Asr"):
+            PrayerTimes(coordinates, date, method)
 
 
 def test_prayer_times_with_method_with_isha_interval():
@@ -141,7 +140,10 @@ def test_offsets():
         prayer_times_with_no_offsets.dhuhr.astimezone(tz).strftime(format) == "12:05 PM"
     )
     assert prayer_times_with_offsets.dhuhr.astimezone(tz).strftime(format) == "12:15 PM"
-    assert prayer_times_with_blank_adjustments
+    assert (
+        prayer_times_with_blank_adjustments.dhuhr.astimezone(tz).strftime(format)
+        == "12:05 PM"
+    )
 
     assert (
         prayer_times_with_no_offsets.asr.astimezone(tz).strftime(format) == "02:42 PM"
@@ -278,7 +280,7 @@ def test_invalid_madhab_raises_configuration_error():
     params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
     params.madhab = None
 
-    with pytest.raises(ConfigurationError):
+    with pytest.raises(ConfigurationError, match="(?i)madhab"):
         PrayerTimes(
             (35.7750, -78.6336),
             DateComponents(2015, 7, 12),

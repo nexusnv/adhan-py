@@ -105,7 +105,7 @@ def test_method_has_precedence_over_other_parameters():
 
 
 def test_invalid_method_type_raises():
-    with pytest.raises(ConfigurationError):
+    with pytest.raises(ConfigurationError, match="(?i)CalculationMethod"):
         CalculationParameters(method="bogus", fajr_angle=18)
 
 

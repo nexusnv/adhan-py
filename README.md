@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 ![pytest](https://github.com/nexusnv/adhan-py/actions/workflows/test.yml/badge.svg)
 
-An offline Python library for calculating Islamic prayer times. A community-maintained fork of [alphahm/adhanpy](https://github.com/alphahm/adhanpy), which is a Python port of [batoulapps/adhan](https://github.com/batoulapps/adhan) (Java).
+An offline Python library for calculating Islamic prayer times. It originates from the same [`batoulapps/adhan`](https://github.com/batoulapps/adhan) port lineage as [alphahm/adhanpy](https://github.com/alphahm/adhanpy) (via that Python port) and is developed and released as an independent library.
 
 Part of the `adhan` family of libraries:
 
@@ -144,15 +144,28 @@ Output:
 ```
 fajr=2015-07-12T08:42:00+00:00
 sunrise=2015-07-12T10:08:00+00:00
-dhuhr=2015-07-12T17:20:00+00:00
-asr=2015-07-12T21:00:00+00:00
-maghrib=2015-07-12T24:32:00+00:00
-isha=2015-07-13T02:02:00+00:00
+dhuhr=2015-07-12T17:21:00+00:00
+asr=2015-07-12T21:09:00+00:00
+maghrib=2015-07-13T00:32:00+00:00
+isha=2015-07-13T01:57:00+00:00
 ```
 
 ## API Reference
 
-See [`docs/api.md`](docs/api.md) for the full API reference.
+See [`docs/user/api-reference.md`](docs/user/api-reference.md) for the full API reference
+([rendered site](https://nexusnv.github.io/adhan-py/api-reference/)).
+
+## Migrating from adhanpy
+
+`adhan-py` is developed as an independent library, but it originates from the same
+[`batoulapps/adhan`](https://github.com/batoulapps/adhan) port lineage as
+[`adhanpy`](https://github.com/alphahm/adhanpy), so the public surface keeps the same
+class and method names — switching packages is typically a matter of changing the
+install (`adhanpy` → `adhan-py`) and the import (`adhanpy` → `adhan`). The move exists
+to track currently supported Python versions, keep development dependencies and tooling
+current, and leave room for the milestones of this project to evolve on their own.
+In return you get a hardened `AdhanError` hierarchy, fully typed APIs, and ongoing
+maintenance. See [the migration guide](docs/user/migration.md) for details.
 
 ## Examples
 
