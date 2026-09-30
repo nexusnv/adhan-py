@@ -56,7 +56,7 @@ def test_when_transit_or_sunrise_components_or_sunset_components_or_tomorrow_sun
     coordinates = (35.7750, -78.6336)
 
     with patch.object(TimeComponents, "from_float", lambda e: None):
-        with pytest.raises(AstronomicalError):
+        with pytest.raises(AstronomicalError, match="(?i)polar day/night"):
             PrayerTimes(coordinates, date, method)
 
 
@@ -66,7 +66,7 @@ def test_when_asr_is_not_set_raise_exception():
     coordinates = (35.7750, -78.6336)
 
     with patch.object(SolarTime, "afternoon", lambda e, f: math.inf):
-        with pytest.raises(AstronomicalError):
+        with pytest.raises(AstronomicalError, match="Unable to compute Asr"):
             PrayerTimes(coordinates, date, method)
 
 
@@ -140,7 +140,10 @@ def test_offsets():
         prayer_times_with_no_offsets.dhuhr.astimezone(tz).strftime(format) == "12:05 PM"
     )
     assert prayer_times_with_offsets.dhuhr.astimezone(tz).strftime(format) == "12:15 PM"
-    assert prayer_times_with_blank_adjustments
+    assert (
+        prayer_times_with_blank_adjustments.dhuhr.astimezone(tz).strftime(format)
+        == "12:05 PM"
+    )
 
     assert (
         prayer_times_with_no_offsets.asr.astimezone(tz).strftime(format) == "02:42 PM"
@@ -277,7 +280,7 @@ def test_invalid_madhab_raises_configuration_error():
     params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
     params.madhab = None
 
-    with pytest.raises(ConfigurationError):
+    with pytest.raises(ConfigurationError, match="(?i)madhab"):
         PrayerTimes(
             (35.7750, -78.6336),
             DateComponents(2015, 7, 12),

@@ -10,6 +10,7 @@ from adhan.data.Coordinates import Coordinates
 from adhan.exceptions import AstronomicalError, ConfigurationError
 from adhan.Qibla import MAKKAH
 from adhan.util.DateComponents import DateComponents
+from support import is_ordered as _ordered
 
 TROMSO = (69.65, 18.96)
 SUMMER = DateComponents(2015, 6, 21)
@@ -18,19 +19,6 @@ WINTER = DateComponents(2015, 12, 21)
 
 def _params(**kwargs):
     return CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE, **kwargs)
-
-
-def _ordered(prayer_times):
-    # Only Dhuhr/Asr may coincide (documented saturation); every other
-    # adjacent pair is strictly increasing on all covered cases.
-    return (
-        prayer_times.fajr
-        < prayer_times.sunrise
-        < prayer_times.dhuhr
-        <= prayer_times.asr
-        < prayer_times.maghrib
-        < prayer_times.isha
-    )
 
 
 @pytest.mark.parametrize("date", [SUMMER, WINTER])

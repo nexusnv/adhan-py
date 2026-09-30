@@ -1,6 +1,7 @@
 import pytest
 from adhan import Qibla
 from adhan.data.Coordinates import Coordinates
+from adhan.exceptions import ValidationError
 
 
 @pytest.mark.parametrize(
@@ -30,3 +31,9 @@ def test_qibla_accepts_coordinates_object():
 def test_qibla_direction_in_range():
     for latitude, longitude in [(35.7750, -78.6336), (-33.8688, 151.2093)]:
         assert 0 <= Qibla((latitude, longitude)).direction < 360
+
+
+@pytest.mark.parametrize("coordinates", [None, 35.7, (), (35.7,)])
+def test_qibla_malformed_coordinates_rejected(coordinates):
+    with pytest.raises(ValidationError, match="(?i)coordinates|real number"):
+        Qibla(coordinates)

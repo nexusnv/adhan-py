@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from adhan import PrayerTimes, SunnahTimes
 from adhan.calculation import CalculationMethod, CalculationParameters
@@ -30,7 +30,7 @@ def test_sunnah_times_ordering():
     sunnah_times = SunnahTimes(prayer_times)
     tomorrow = PrayerTimes(
         (35.7750, -78.6336),
-        prayer_times._prayer_date + timedelta(days=1),
+        DateComponents(2015, 7, 13),
         calculation_parameters=CalculationParameters(
             method=CalculationMethod.MUSLIM_WORLD_LEAGUE
         ),

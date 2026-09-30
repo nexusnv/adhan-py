@@ -1,4 +1,4 @@
-"""Black-box feasibility sweep (scratch, pre-release adhan-py 2.0.0).
+"""Black-box sweep (promoted to the permanent suite; pre-release adhan-py 2.0.0).
 
 Public seam only: ``adhan`` root exports (PrayerTimes, Qibla, SunnahTimes,
 CalculationMethod, CalculationParameters, HighLatitudeRule, Madhab,
@@ -41,6 +41,7 @@ from adhan import (
 from adhan.__main__ import main
 from adhan.Qibla import MAKKAH
 from adhan.util.DateComponents import DateComponents
+from support import is_ordered as _ordered
 
 RALEIGH = (35.7750, -78.6336)
 OSLO = (59.9094, 10.7349)
@@ -49,18 +50,6 @@ MID_DATE = datetime(2015, 7, 12, 12, 0, 0, tzinfo=timezone.utc)
 WINTER_OSLO = DateComponents(2016, 1, 1)
 WINTER_TROMSO = DateComponents(2015, 12, 21)
 PRAYER_ATTRS = ("fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha")
-
-
-def _ordered(pt: PrayerTimes) -> bool:
-    """Monotonic invariant; only Dhuhr/Asr may coincide (documented saturation)."""
-    return (
-        pt.fajr
-        < pt.sunrise
-        < pt.dhuhr
-        <= pt.asr
-        < pt.maghrib
-        < pt.isha
-    )
 
 
 def _all_utc(pt: PrayerTimes) -> bool:
@@ -424,7 +413,7 @@ def test_invalid_madhab_raises_configuration_error():
     # BB-PT-CFG-03. Source: test_invalid_madhab_raises_configuration_error.
     params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
     params.madhab = None
-    with pytest.raises(ConfigurationError):
+    with pytest.raises(ConfigurationError, match="(?i)madhab"):
         PrayerTimes(RALEIGH, DateComponents(2015, 7, 12),
                     calculation_parameters=params)
 
@@ -479,7 +468,7 @@ def test_non_numeric_coordinates_raise_adhan_error():
     # BB-PT-VAL-03. Oracle: ARCHITECTURE.md promises all errors are
     # AdhanError subclasses; non-numeric input must not leak bare TypeError.
     # Label: suspicious current behavior (minimized reproducer; see report).
-    with pytest.raises(AdhanError):
+    with pytest.raises(AdhanError, match="(?i)real number"):
         PrayerTimes(
             ("a", "b"), DateComponents(2015, 7, 12),
             CalculationMethod.MUSLIM_WORLD_LEAGUE,

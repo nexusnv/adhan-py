@@ -1,11 +1,12 @@
-"""Feasibility parameterized sweep (deterministic, stdlib-only fallback).
+"""Parameterized sweep (deterministic, stdlib-only fallback; promoted to the
+permanent suite).
 
 Boundary: PrayerTimes / Coordinates / CalculationParameters / Qibla /
 SunnahTimes (public API in src/adhan/__init__.py).
 Seed: 20260929. Generator: random.Random (no Hypothesis in project deps;
 reduced guarantees: finite witnesses, manual minimization only).
 Budgets: <=200 cases total, <120s wall time, input scalars only.
-Scratch file: must not collide with parallel blackbox agent artifacts.
+Shared ordering helper lives in tests/support.py.
 """
 
 import random
@@ -211,7 +212,7 @@ class TestFixedRejections:
             )
 
     def test_both_method_and_params_raises(self):
-        with pytest.raises(ConfigurationError):
+        with pytest.raises(ConfigurationError, match="Only one of"):
             PrayerTimes(
                 DateComponents(2015, 7, 12) and (35.7750, -78.6336),
                 DateComponents(2015, 7, 12),
@@ -222,7 +223,7 @@ class TestFixedRejections:
     def test_none_madhab_raises(self):
         params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
         params.madhab = None
-        with pytest.raises(ConfigurationError):
+        with pytest.raises(ConfigurationError, match="(?i)madhab"):
             PrayerTimes(
                 (35.7750, -78.6336),
                 DateComponents(2015, 7, 12),
@@ -405,7 +406,8 @@ class TestGeneratedSunnah:
         st = SunnahTimes(pt)
         tomorrow = PrayerTimes(
             (lat, lon),
-            pt._prayer_date + timedelta(days=1),
+            datetime(date.year, date.month, date.day, tzinfo=timezone.utc)
+            + timedelta(days=1),
             calculation_parameters=make_params(method),
         )
         assert pt.maghrib < st.middle_of_the_night, case_id
@@ -439,7 +441,7 @@ class TestGeneratedPolar:
         params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
         params.polar_circle_rule = rule
         if rule == PolarCircleRule.NONE:
-            with pytest.raises(AstronomicalError):
+            with pytest.raises(AstronomicalError, match="(?i)polar"):
                 PrayerTimes((lat, lon), date, calculation_parameters=params)
         else:
             pt = PrayerTimes((lat, lon), date, calculation_parameters=params)
@@ -484,9 +486,9 @@ class TestGeneratedInvalid:
 
     @pytest.mark.parametrize("case_id,lat,lon", INVALID_NUMERIC)
     def test_bad_coords_rejected(self, case_id, lat, lon):
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError, match="(?i)latitude|longitude"):
             Coordinates(lat, lon)
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError, match="(?i)latitude|longitude"):
             PrayerTimes(
                 (lat, lon),
                 DateComponents(2015, 7, 12),
@@ -495,14 +497,14 @@ class TestGeneratedInvalid:
 
     @pytest.mark.parametrize("case_id,kwargs", INVALID_PARAMS)
     def test_bad_params_rejected(self, case_id, kwargs):
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError, match="(?i)angle|interval"):
             CalculationParameters(**kwargs)
 
     @pytest.mark.parametrize("case_id,coords,exc", MALFORMED)
     def test_malformed_coords_characterization(self, case_id, coords, exc):
         # Contract: wrong-type input is rejected with ValidationError
         # (fixed F-VAL-03; previously builtin TypeError/ValueError leaked).
-        with pytest.raises(exc):
+        with pytest.raises(exc, match="(?i)coordinates|real number"):
             PrayerTimes(
                 coords,
                 DateComponents(2015, 7, 12),
@@ -558,12 +560,15 @@ class TestGeneratedInvalid:
         after, after_tpl = snapshot(), template_snapshot()
         assert before == after
         assert before_tpl == after_tpl
+
         # Fresh instances behave identically before/after the rejection storm.
-        mk = lambda: PrayerTimes(
-            (35.7750, -78.6336),
-            DateComponents(2015, 7, 12),
-            CalculationMethod.MUSLIM_WORLD_LEAGUE,
-        )
+        def mk() -> PrayerTimes:
+            return PrayerTimes(
+                (35.7750, -78.6336),
+                DateComponents(2015, 7, 12),
+                CalculationMethod.MUSLIM_WORLD_LEAGUE,
+            )
+
         assert ordered_times(mk()) == ordered_times(mk())
 
 
