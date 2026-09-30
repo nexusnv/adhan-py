@@ -27,3 +27,7 @@ class Coordinates:
             raise ValidationError(
                 f"Longitude must be within [-180, 180], got {self.longitude}."
             )
+        # Normalize: downstream float arithmetic (Qibla, SolarTime) cannot
+        # consume Decimal/Fraction, so store plain floats post-validation.
+        self.latitude = float(self.latitude)
+        self.longitude = float(self.longitude)

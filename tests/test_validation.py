@@ -1,4 +1,5 @@
 import pytest
+from decimal import Decimal
 from adhan import PrayerTimes, Qibla
 from adhan.calculation import CalculationMethod, CalculationParameters
 from adhan.data.Coordinates import Coordinates
@@ -97,3 +98,16 @@ def test_malformed_coordinates_are_adhan_errors():
         pass
     else:
         pytest.fail("expected AdhanError")
+
+
+def test_decimal_coordinates_normalized_to_float():
+    # Coordinates accepts Decimal but downstream float arithmetic (Qibla,
+    # SolarTime) cannot consume it; fields must be plain floats, never a
+    # bare TypeError leaking through the AdhanError contract.
+    coords = Coordinates(Decimal("35.7750"), Decimal("-78.6336"))
+
+    assert isinstance(coords.latitude, float)
+    assert isinstance(coords.longitude, float)
+    assert Qibla(
+        (Decimal("35.7750"), Decimal("-78.6336"))
+    ).direction == pytest.approx(Qibla((35.7750, -78.6336)).direction)

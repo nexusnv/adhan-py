@@ -6,9 +6,8 @@ PolarCircleRule, PrayerAdjustments, Coordinates, Prayer, exceptions) plus the
 CLI consumer workflow (``adhan.__main__.main`` / ``python -m adhan``).
 No private helpers, no internal state, no mocks, no call-order assertions.
 
-Traceability: scenario IDs ``BB-*`` map 1:1 to the planning matrix in
-``test-reports/blackbox-feasibility-20260929.md``. Each test names its oracle
-(contract golden / invariant / stable error / characterization) inline.
+Traceability: scenario IDs ``BB-*`` are defined inline — each test names its
+oracle (contract golden / invariant / stable error / characterization).
 
 NOTE on task wording: there is no ``SunnahTimes.from_prayer_times`` in 2.0.0;
 the public seam is the ``SunnahTimes(prayer_times)`` constructor, which is
