@@ -5,7 +5,7 @@ description: Handle prayer times at high latitudes with extreme night lengths.
 
 # High Latitude Rules
 
-At high latitudes, summer nights can be very short, making it difficult to determine Fajr and Isha times. adhan-py provides three rules for these situations.
+At high latitudes, summer nights can be very short, making it difficult to determine Fajr and Isha times. Al-Falak provides three rules for these situations.
 
 ## HighLatitudeRule options
 
@@ -18,7 +18,7 @@ At high latitudes, summer nights can be very short, making it difficult to deter
 ## Using a high latitude rule
 
 ```python
-from adhan import PrayerTimes, CalculationParameters, HighLatitudeRule
+from alfalak import PrayerTimes, CalculationParameters, HighLatitudeRule
 
 params = CalculationParameters(
     high_latitude_rule=HighLatitudeRule.MIDDLE_OF_THE_NIGHT,

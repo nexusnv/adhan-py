@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Complete API reference for adhan-py.
+description: Complete API reference for al-falak.
 ---
 
 # API Reference
@@ -8,7 +8,7 @@ description: Complete API reference for adhan-py.
 All public names are importable from the package root:
 
 ```python
-from adhan import (
+from alfalak import (
     PrayerTimes,
     Qibla,
     SunnahTimes,
@@ -20,7 +20,7 @@ from adhan import (
     PrayerAdjustments,
     Coordinates,
     Prayer,
-    AdhanError,
+    AlFalakError,
     AstronomicalError,
     ConfigurationError,
     ValidationError,
@@ -162,7 +162,7 @@ PrayerAdjustments(
 ## Exceptions
 
 ```
-AdhanError (base)
+AlFalakError (base)
 ├── AstronomicalError
 ├── ConfigurationError
 └── ValidationError

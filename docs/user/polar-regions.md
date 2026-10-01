@@ -5,7 +5,7 @@ description: Handle prayer times in polar regions where the sun may never rise o
 
 # Polar Regions
 
-Above the Arctic Circle (or below the Antarctic Circle), the sun may never rise or set for days or weeks. adhan-py provides configurable strategies for these situations.
+Above the Arctic Circle (or below the Antarctic Circle), the sun may never rise or set for days or weeks. Al-Falak provides configurable strategies for these situations.
 
 ## PolarCircleRule options
 
@@ -19,7 +19,7 @@ Above the Arctic Circle (or below the Antarctic Circle), the sun may never rise 
 ## Using a polar rule
 
 ```python
-from adhan import PrayerTimes, CalculationParameters, PolarCircleRule
+from alfalak import PrayerTimes, CalculationParameters, PolarCircleRule
 
 params = CalculationParameters(
     polar_circle_rule=PolarCircleRule.NEAREST_LATITUDE,
@@ -48,7 +48,7 @@ Uses Makkah's coordinates (21.4225°N, 39.8262°E) for the same date. Useful for
 No fallback. Raises `AstronomicalError` when the sun never rises or sets:
 
 ```python
-from adhan import PrayerTimes, CalculationParameters, PolarCircleRule, AstronomicalError
+from alfalak import PrayerTimes, CalculationParameters, PolarCircleRule, AstronomicalError
 
 params = CalculationParameters(polar_circle_rule=PolarCircleRule.NONE)
 try:

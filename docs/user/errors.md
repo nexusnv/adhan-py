@@ -1,16 +1,16 @@
 ---
 title: Errors
-description: Understand the adhan-py error hierarchy and how to handle failures.
+description: Understand the al-falak error hierarchy and how to handle failures.
 ---
 
 # Errors
 
-adhan-py uses a dedicated error hierarchy for all failures. All errors inherit from `AdhanError`.
+Al-Falak uses a dedicated error hierarchy for all failures. All errors inherit from `AlFalakError`.
 
 ## Error hierarchy
 
 ```
-AdhanError (base)
+AlFalakError (base)
 ├── AstronomicalError    # Sun position undefined (polar day/night)
 ├── ConfigurationError   # Invalid setup (method, madhab, etc.)
 └── ValidationError      # Out-of-range input (coordinates, angles)
@@ -19,11 +19,11 @@ AdhanError (base)
 ## Catching errors
 
 ```python
-from adhan import PrayerTimes, CalculationMethod, AdhanError
+from alfalak import PrayerTimes, CalculationMethod, AlFalakError
 
 try:
     pt = PrayerTimes((35.7750, -78.6336), datetime.now(), CalculationMethod.NORTH_AMERICA)
-except AdhanError as e:
+except AlFalakError as e:
     print(f"Calculation failed: {e}")
 ```
 
@@ -34,7 +34,7 @@ except AdhanError as e:
 Raised when the sun never rises or sets (polar day/night) and `PolarCircleRule.NONE` is set:
 
 ```python
-from adhan import AstronomicalError, PolarCircleRule, CalculationParameters
+from alfalak import AstronomicalError, PolarCircleRule, CalculationParameters
 
 params = CalculationParameters(polar_circle_rule=PolarCircleRule.NONE)
 try:
@@ -48,7 +48,7 @@ except AstronomicalError as e:
 Raised for invalid configuration:
 
 ```python
-from adhan import ConfigurationError, CalculationParameters
+from alfalak import ConfigurationError, CalculationParameters
 
 try:
     # Both method and parameters is invalid
@@ -63,7 +63,7 @@ except ConfigurationError as e:
 Raised for out-of-range input:
 
 ```python
-from adhan import ValidationError, Coordinates
+from alfalak import ValidationError, Coordinates
 
 try:
     Coordinates(latitude=91, longitude=0)

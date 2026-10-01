@@ -4,7 +4,7 @@
 
 - Target behavior or public boundary: `PrayerTimes`, `Coordinates`,
   `CalculationParameters`, `Qibla`, `SunnahTimes` (public API in
-  `src/adhan/__init__.py`, adhan-py 2.0.0, offline prayer-times library).
+  `src/alfalak/__init__.py`, al-falak 2.0.0, offline prayer-times library).
 - Consumer and contract: library consumers calling the public constructors;
   contract is the quantified properties P1–P6 below plus documented stable
   errors (`ValidationError`, `AstronomicalError`, `ConfigurationError`).
@@ -254,7 +254,7 @@
 | `time_for_prayer` / CLI | not-run | out of scope (boundary = constructors) | N/A | N/A | convenience wrappers untested |
 | non-UTC `time_zone` variants | not-run | one DST golden covers TZ path | N/A | N/A | TZ conversion matrix gap |
 | `tests/test_PrayerTimes.py` mocker tests | not-run (error) | `pytest-mock` absent from required runner; pre-existing | `uv run … pytest -q` | error (fixture 'mocker' not found) | none for this sweep |
-| parallel agent file failure | not-run | `test_blackbox_sweep_tmp.py::test_non_numeric_coordinates_raise_adhan_error` belongs to the parallel agent; corroborates G-MAL characterization (TypeError, not AdhanError) | N/A | N/A | none; do not touch |
+| parallel agent file failure | not-run | `test_blackbox_sweep_tmp.py::test_non_numeric_coordinates_raise_alfalak_error` belongs to the parallel agent; corroborates G-MAL characterization (TypeError, not AlFalakError) | N/A | N/A | none; do not touch |
 
 ## Limitations and conclusion
 
@@ -270,7 +270,7 @@
   arithmetic adjacent to the implementation (independent tolerance, but
   adjacent derivation); zero-angle/NONE behavior locked as characterization,
   not contract; malformed-type oracle is characterization (TypeError/
-  ValueError, not AdhanError).
+  ValueError, not AlFalakError).
 - Environment and platform limitations: single run, Ubuntu, Python 3.13.5,
   system tzdata, TZ=+08 ambient (neutralized by explicit UTC/ZoneInfo).
 - Coverage gaps and discarded/truncated families: as listed in Not run; no

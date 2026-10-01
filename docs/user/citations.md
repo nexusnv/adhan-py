@@ -1,6 +1,6 @@
 ---
 title: Citations
-description: Attribution and references for adhan-py.
+description: Attribution and references for al-falak.
 ---
 
 # Citations
@@ -35,4 +35,4 @@ The prayer time calculation methods, mathematical formulas, and computational st
 
 ## License
 
-This project is licensed under the MIT License — see [LICENSE](https://github.com/nexusnv/adhan-py/blob/main/LICENSE) for details.
+This project is licensed under the MIT License — see [LICENSE](https://github.com/nexusnv/al-falak/blob/main/LICENSE) for details.

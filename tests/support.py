@@ -6,7 +6,7 @@ directory to ``sys.path``, making ``from support import ...`` work from
 any top-level test module.
 """
 
-from adhan import PrayerTimes
+from alfalak import PrayerTimes
 
 
 def is_ordered(prayer_times: PrayerTimes) -> bool:

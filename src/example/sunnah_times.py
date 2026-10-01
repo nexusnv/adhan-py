@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from adhan import PrayerTimes, SunnahTimes, CalculationMethod
+from alfalak import PrayerTimes, SunnahTimes, CalculationMethod
 
 
 def main() -> None:

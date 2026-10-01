@@ -10,7 +10,7 @@ The Qibla is the direction to the Kaaba in Makkah, used during Islamic prayer.
 ## Basic usage
 
 ```python
-from adhan import Qibla
+from alfalak import Qibla
 
 direction = Qibla((35.7750, -78.6336)).direction
 print(f"Qibla: {direction:.1f}° clockwise from north")
@@ -19,7 +19,7 @@ print(f"Qibla: {direction:.1f}° clockwise from north")
 ## Using a Coordinates object
 
 ```python
-from adhan import Qibla, Coordinates
+from alfalak import Qibla, Coordinates
 
 coords = Coordinates(latitude=35.7750, longitude=-78.6336)
 direction = Qibla(coords).direction
@@ -28,7 +28,7 @@ direction = Qibla(coords).direction
 ## Multiple cities
 
 ```python
-from adhan import Qibla
+from alfalak import Qibla
 
 cities = [
     ("Raleigh, US", (35.7750, -78.6336)),

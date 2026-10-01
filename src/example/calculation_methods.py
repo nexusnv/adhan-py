@@ -1,7 +1,7 @@
 """Compare different calculation methods for the same location and date."""
 
 from datetime import datetime
-from adhan import PrayerTimes, CalculationMethod
+from alfalak import PrayerTimes, CalculationMethod
 
 
 def main() -> None:

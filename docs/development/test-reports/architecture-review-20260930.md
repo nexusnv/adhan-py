@@ -7,7 +7,7 @@ Vocabulary: **module**, **interface**, **depth**, **seam**, **adapter**, **lever
 No `CONTEXT.md` exists, so domain names come from `ARCHITECTURE.md`
 (prayer times, calculation method, polar rule, night portion, shadow length).
 No `docs/adr/` exists, so there are no ADR conflicts.
-Hot spots from `git log`: AdhanError hierarchy (#34), Asr polar edge (#33),
+Hot spots from `git log`: AlFalakError hierarchy (#34), Asr polar edge (#33),
 polar derivation (#31), validation + packaging (#32), CLI (#28), test hardening (#39).
 
 ## How to read this report
@@ -36,12 +36,12 @@ flowchart LR
 ## 1 · The calculation-configuration cluster is shallow — `Strong`
 
 **Files:**
-`src/adhan/calculation/CalculationMethod.py:4-74` ·
-`src/adhan/calculation/MethodsParameters.py:6-47` ·
-`src/adhan/calculation/CalculationParameters.py:13-101` ·
-`src/adhan/calculation/HighLatitudeRule.py:4-22` ·
-`src/adhan/calculation/Madhab.py:6-19` ·
-`src/adhan/data/NightPortions.py:4-7`
+`src/alfalak/calculation/CalculationMethod.py:4-74` ·
+`src/alfalak/calculation/MethodsParameters.py:6-47` ·
+`src/alfalak/calculation/CalculationParameters.py:13-101` ·
+`src/alfalak/calculation/HighLatitudeRule.py:4-22` ·
+`src/alfalak/calculation/Madhab.py:6-19` ·
+`src/alfalak/data/NightPortions.py:4-7`
 
 ### Problem
 
@@ -106,11 +106,11 @@ PrayerTimes learns one seam
 ## 2 · The solar seam leaks celestial wiring — `Strong`
 
 **Files:**
-`src/adhan/astronomy/SolarTime.py:14-88` ·
-`src/adhan/astronomy/Astronomical.py:148-186` ·
-`src/adhan/astronomy/SolarCoordinates.py:17-41` ·
-`src/adhan/util/TimeComponents.py:15-35` ·
-`src/adhan/PrayerTimes.py:152-192`
+`src/alfalak/astronomy/SolarTime.py:14-88` ·
+`src/alfalak/astronomy/Astronomical.py:148-186` ·
+`src/alfalak/astronomy/SolarCoordinates.py:17-41` ·
+`src/alfalak/util/TimeComponents.py:15-35` ·
+`src/alfalak/PrayerTimes.py:152-192`
 
 ### Problem
 
@@ -159,7 +159,7 @@ flowchart TB
 ```mermaid
 flowchart TB
   PT[PrayerTimes + polar probes] --> S[Solar small interface: transit/sunrise/sunset/hour_angle/afternoon]
-  S --> IMPL[hidden: probing, Julian math, NaN to AdhanError]
+  S --> IMPL[hidden: probing, Julian math, NaN to AlFalakError]
 ```
 
 ---
@@ -167,9 +167,9 @@ flowchart TB
 ## 3 · Fajr / Isha safe-cap logic is duplicated, Asr clamping is split — `Strong`
 
 **Files:**
-`src/adhan/PrayerTimes.py:224-253,255-292,310-341,351-422,440-447` ·
-`src/adhan/calculation/Twilight.py:24-73` ·
-`src/adhan/util/CalendarUtil.py:4-17`
+`src/alfalak/PrayerTimes.py:224-253,255-292,310-341,351-422,440-447` ·
+`src/alfalak/calculation/Twilight.py:24-73` ·
+`src/alfalak/util/CalendarUtil.py:4-17`
 
 ### Problem
 
@@ -226,10 +226,10 @@ shared probe → shared twilight core → shared cap +
 ## 4 · Seams leak: Makkah, privates, mutable coordinates — `Worth exploring`
 
 **Files:**
-`src/adhan/Qibla.py:6,34-40` ·
-`src/adhan/PrayerTimes.py:138,224-253` ·
-`src/adhan/SunnahTimes.py:19-39` ·
-`src/adhan/data/Coordinates.py:8-33`
+`src/alfalak/Qibla.py:6,34-40` ·
+`src/alfalak/PrayerTimes.py:138,224-253` ·
+`src/alfalak/SunnahTimes.py:19-39` ·
+`src/alfalak/data/Coordinates.py:8-33`
 
 ### Problem
 
@@ -286,8 +286,8 @@ flowchart LR
 ## 5 · CLI is a partial adapter drifting from the library — `Worth exploring`
 
 **Files:**
-`src/adhan/__main__.py:8-49` ·
-`src/adhan/__init__.py:1-35`
+`src/alfalak/__main__.py:8-49` ·
+`src/alfalak/__init__.py:1-35`
 
 ### Problem
 
@@ -301,7 +301,7 @@ via SystemExit, not the error tree), and mixes
 package interface is also uneven: it re-exports 14 names but hides
 `NightPortions`, `ShadowLength`, method defaults and Twilight helpers,
 forcing bouncing to deep paths; dual import styles
-(`adhan.Coordinates` vs `adhan.data.Coordinates`) coexist.
+(`alfalak.Coordinates` vs `alfalak.data.Coordinates`) coexist.
 
 ### Solution
 
@@ -326,7 +326,7 @@ validation live in the library module, not split across `__main__` and
 ```text
 CLI: defaults MWL · today UTC · 4 flags · strptime+SystemExit
   ↓↯↑
-Library: requires method/params · full fields · AdhanError
+Library: requires method/params · full fields · AlFalakError
 ```
 
 ### After — thin adapter

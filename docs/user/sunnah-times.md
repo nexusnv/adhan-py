@@ -11,7 +11,7 @@ Sunnah times are recommended times for night prayer (Qiyam/Tahajjud), derived fr
 
 ```python
 from datetime import datetime
-from adhan import PrayerTimes, SunnahTimes, CalculationMethod
+from alfalak import PrayerTimes, SunnahTimes, CalculationMethod
 
 prayer_times = PrayerTimes(
     (35.7750, -78.6336),

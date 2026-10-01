@@ -1,16 +1,16 @@
 ---
 title: CLI Usage
-description: Use the adhan-py command-line interface for quick prayer time output.
+description: Use the al-falak command-line interface for quick prayer time output.
 ---
 
 # CLI Usage
 
-adhan-py includes a command-line interface for quick terminal output.
+Al-Falak includes a command-line interface for quick terminal output.
 
 ## Basic usage
 
 ```bash
-python -m adhan --latitude 35.7750 --longitude -78.6336
+python -m alfalak --latitude 35.7750 --longitude -78.6336
 ```
 
 Output:
@@ -26,7 +26,7 @@ isha=2026-09-30T00:11:00+00:00
 ## With date and method
 
 ```bash
-python -m adhan \
+python -m alfalak \
   --latitude 35.7750 \
   --longitude -78.6336 \
   --date 2015-07-12 \
@@ -63,10 +63,10 @@ UOIF
 The CLI exits with code 2 for invalid input:
 
 ```bash
-$ python -m adhan --latitude 35 --longitude -78 --method BOGUS
-usage: adhan [-h] --latitude LATITUDE --longitude LONGITUDE [--date DATE]
+$ python -m alfalak --latitude 35 --longitude -78 --method BOGUS
+usage: al-falak [-h] --latitude LATITUDE --longitude LONGITUDE [--date DATE]
              [--method {MUSLIM_WORLD_LEAGUE,NORTH_AMERICA,...}]
-adhan: error: argument --method: invalid choice: 'BOGUS'
+al-falak: error: argument --method: invalid choice: 'BOGUS'
 ```
 
 ## See also

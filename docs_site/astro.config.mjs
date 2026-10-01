@@ -6,7 +6,7 @@ import versionsConfig from './versions.json' with { type: 'json' };
 // https://astro.build/config
 export default defineConfig({
   site: 'https://nexusnv.github.io',
-  base: '/adhan-py',
+  base: '/al-falak',
   vite: {
     resolve: {
       preserveSymlinks: true,
@@ -14,16 +14,16 @@ export default defineConfig({
   },
   integrations: [
     starlight({
-      title: 'adhan-py',
+      title: 'al-falak',
       description: 'An offline Python library for calculating Islamic prayer times.',
       logo: {
         src: './public/favicon.svg',
       },
       social: [
-        { label: 'GitHub', href: 'https://github.com/nexusnv/adhan-py', icon: 'github' },
+        { label: 'GitHub', href: 'https://github.com/nexusnv/al-falak', icon: 'github' },
       ],
       editLink: {
-        baseUrl: 'https://github.com/nexusnv/adhan-py/edit/main/docs/user/',
+        baseUrl: 'https://github.com/nexusnv/al-falak/edit/main/docs/user/',
       },
       lastUpdated: true,
       expressiveCode: {

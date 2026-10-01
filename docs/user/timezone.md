@@ -1,17 +1,17 @@
 ---
 title: Timezone Handling
-description: Understand how adhan-py handles timezones and DST transitions.
+description: Understand how al-falak handles timezones and DST transitions.
 ---
 
 # Timezone Handling
 
-adhan-py returns timezone-aware UTC `datetime` objects by default. You can convert to any timezone using the `time_zone` parameter.
+Al-Falak returns timezone-aware UTC `datetime` objects by default. You can convert to any timezone using the `time_zone` parameter.
 
 ## Default behavior (UTC)
 
 ```python
 from datetime import datetime
-from adhan import PrayerTimes, CalculationMethod
+from alfalak import PrayerTimes, CalculationMethod
 
 pt = PrayerTimes(
     (35.7750, -78.6336),
@@ -47,7 +47,7 @@ local_time = pt.fajr.astimezone(ZoneInfo("Europe/London"))
 
 ## DST transitions
 
-adhan-py handles DST correctly:
+Al-Falak handles DST correctly:
 
 - All internal calculations use UTC
 - Sunnah times use absolute elapsed time (not wall-clock subtraction)

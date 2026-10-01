@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Install adhan-py and run your first prayer time calculation.
+description: Install al-falak and run your first prayer time calculation.
 ---
 
 # Getting Started
@@ -8,14 +8,14 @@ description: Install adhan-py and run your first prayer time calculation.
 ## Install
 
 ```bash
-pip install adhan-py
+pip install al-falak
 ```
 
 ## Your first calculation
 
 ```python
 from datetime import datetime
-from adhan import PrayerTimes, CalculationMethod
+from alfalak import PrayerTimes, CalculationMethod
 
 # Coordinates for Raleigh, NC
 coordinates = (35.7750, -78.6336)
@@ -38,7 +38,7 @@ print(f"Isha:    {prayer_times.isha.strftime('%H:%M')}")
 ## Using a Coordinates object
 
 ```python
-from adhan import Coordinates, PrayerTimes, CalculationMethod
+from alfalak import Coordinates, PrayerTimes, CalculationMethod
 
 coords = Coordinates(latitude=35.7750, longitude=-78.6336)
 prayer_times = PrayerTimes(coords, datetime.now(), CalculationMethod.MUSLIM_WORLD_LEAGUE)
@@ -47,7 +47,7 @@ prayer_times = PrayerTimes(coords, datetime.now(), CalculationMethod.MUSLIM_WORL
 ## Using custom parameters
 
 ```python
-from adhan import PrayerTimes, CalculationParameters
+from alfalak import PrayerTimes, CalculationParameters
 
 params = CalculationParameters(
     fajr_angle=18,

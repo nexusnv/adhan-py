@@ -1,7 +1,7 @@
 """Basic usage: compute prayer times for a location."""
 
 from datetime import datetime
-from adhan import PrayerTimes, CalculationMethod
+from alfalak import PrayerTimes, CalculationMethod
 
 
 def main() -> None:

@@ -1,15 +1,14 @@
 version: 2
-# NOTE: target-branch applies to version updates only. Dependabot security
-# updates always target the repository default branch, so any security PR
-# opened against master must be retargeted to dev before merge.
+# NOTE: Dependabot opens PRs against the default branch (main).
+# Security updates land like any other change — no retargeting needed.
 updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-    target-branch: "dev"
+    target-branch: "main"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    target-branch: "dev"
+    target-branch: "main"

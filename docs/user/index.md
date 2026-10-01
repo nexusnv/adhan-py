@@ -1,9 +1,9 @@
 ---
-title: adhan-py
+title: al-falak
 description: An offline Python library for calculating Islamic prayer times.
 ---
 
-# adhan-py
+# al-falak
 
 An offline Python library for calculating Islamic prayer times. A community-maintained fork of [alphahm/adhanpy](https://github.com/alphahm/adhanpy), which is a Python port of [batoulapps/adhan](https://github.com/batoulapps/adhan) (Java).
 
@@ -15,7 +15,7 @@ An offline Python library for calculating Islamic prayer times. A community-main
 | **Researchers** | Analyze prayer time data across locations and dates |
 | **Embedded systems** | Run on devices with no network connectivity |
 
-## What adhan-py does and does not do
+## What al-falak does and does not do
 
 | Does | Does not |
 |---|---|
@@ -31,7 +31,7 @@ An offline Python library for calculating Islamic prayer times. A community-main
 
 ```python
 from datetime import datetime
-from adhan import PrayerTimes, CalculationMethod
+from alfalak import PrayerTimes, CalculationMethod
 
 coordinates = (35.7750, -78.6336)  # Raleigh, NC
 prayer_times = PrayerTimes(
