@@ -3,8 +3,8 @@ requires = ["hatchling==1.32.4"]
 build-backend = "hatchling.build"
 
 [project]
-name = "adhan-py"
-version = "2.0.0"
+name = "al-falak"
+version = "1.0.0"
 description = "An offline library calculating prayer times"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -19,18 +19,19 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/nexusnv/adhan-py"
-Documentation = "https://github.com/nexusnv/adhan-py/blob/main/README.md"
-Changelog = "https://github.com/nexusnv/adhan-py/blob/main/CHANGES.md"
+Homepage = "https://github.com/nexusnv/al-falak"
+Documentation = "https://github.com/nexusnv/al-falak/blob/main/README.md"
+Changelog = "https://github.com/nexusnv/al-falak/blob/main/CHANGES.md"
 
 [project.scripts]
-adhan = "adhan.__main__:main"
+al-falak = "alfalak.__main__:main"
+alfalak = "alfalak.__main__:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/adhan"]
+packages = ["src/alfalak"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=adhan --cov-branch"
+addopts = "--cov=alfalak --cov-branch"
 testpaths = "tests"
 
 [tool.black]

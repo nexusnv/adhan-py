@@ -1,15 +1,15 @@
-"""Black-box sweep (promoted to the permanent suite; pre-release adhan-py 2.0.0).
+"""Black-box sweep (promoted to the permanent suite; pre-release al-falak 1.0.0).
 
-Public seam only: ``adhan`` root exports (PrayerTimes, Qibla, SunnahTimes,
+Public seam only: ``alfalak`` root exports (PrayerTimes, Qibla, SunnahTimes,
 CalculationMethod, CalculationParameters, HighLatitudeRule, Madhab,
 PolarCircleRule, PrayerAdjustments, Coordinates, Prayer, exceptions) plus the
-CLI consumer workflow (``adhan.__main__.main`` / ``python -m adhan``).
+CLI consumer workflow (``alfalak.__main__.main`` / ``python -m alfalak``).
 No private helpers, no internal state, no mocks, no call-order assertions.
 
 Traceability: scenario IDs ``BB-*`` are defined inline — each test names its
 oracle (contract golden / invariant / stable error / characterization).
 
-NOTE on task wording: there is no ``SunnahTimes.from_prayer_times`` in 2.0.0;
+NOTE on task wording: there is no ``SunnahTimes.from_prayer_times`` in 1.0.0;
 the public seam is the ``SunnahTimes(prayer_times)`` constructor, which is
 what BB-SUNNAH-* exercises.
 """
@@ -21,8 +21,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from adhan import (
-    AdhanError,
+from alfalak import (
+    AlFalakError,
     AstronomicalError,
     CalculationMethod,
     CalculationParameters,
@@ -37,9 +37,9 @@ from adhan import (
     SunnahTimes,
     ValidationError,
 )
-from adhan.__main__ import main
-from adhan.Qibla import MAKKAH
-from adhan.util.DateComponents import DateComponents
+from alfalak.__main__ import main
+from alfalak.Qibla import MAKKAH
+from alfalak.util.DateComponents import DateComponents
 from support import is_ordered as _ordered
 
 RALEIGH = (35.7750, -78.6336)
@@ -85,7 +85,7 @@ def test_method_none_characterization():
 
 # ---------------------------------------------------------------------------
 # BB-PT-GOLDEN-*: exact outcomes from reviewed golden tests.
-# Oracle: reviewed golden result (tests/test_PrayerTimes.py, test_cli.py).
+# Oracle: reviewed golden result (tests/test_prayer_times.py, test_cli.py).
 # Label: contract.
 # ---------------------------------------------------------------------------
 
@@ -463,11 +463,11 @@ def test_out_of_range_parameters_rejected(kwargs):
         CalculationParameters(**kwargs)
 
 
-def test_non_numeric_coordinates_raise_adhan_error():
+def test_non_numeric_coordinates_raise_alfalak_error():
     # BB-PT-VAL-03. Oracle: ARCHITECTURE.md promises all errors are
-    # AdhanError subclasses; non-numeric input must not leak bare TypeError.
+    # AlFalakError subclasses; non-numeric input must not leak bare TypeError.
     # Label: suspicious current behavior (minimized reproducer; see report).
-    with pytest.raises(AdhanError, match="(?i)real number"):
+    with pytest.raises(AlFalakError, match="(?i)real number"):
         PrayerTimes(
             ("a", "b"), DateComponents(2015, 7, 12),
             CalculationMethod.MUSLIM_WORLD_LEAGUE,
@@ -509,7 +509,7 @@ def test_datetime_equivalent_to_date_components():
 
 
 # ---------------------------------------------------------------------------
-# BB-QIBLA-*: Qibla bearings. Oracle: reviewed goldens (test_Qibla.py,
+# BB-QIBLA-*: Qibla bearings. Oracle: reviewed goldens (test_qibla.py,
 # cross-checked against published bearings/WGS84) + [0, 360) matcher.
 # Label: contract (BB-QIBLA-SELF is characterization).
 # ---------------------------------------------------------------------------
@@ -555,7 +555,7 @@ def test_qibla_cardinal_points_in_range(coords):
 
 # ---------------------------------------------------------------------------
 # BB-SUNNAH-*: SunnahTimes(prayer_times). Oracle: reviewed goldens
-# (test_SunnahTimes.py) + ordering invariant. Label: contract.
+# (test_sunnah_times.py) + ordering invariant. Label: contract.
 # ---------------------------------------------------------------------------
 
 
@@ -636,7 +636,7 @@ def test_cli_module_entry_point_subprocess():
     # arg array (no shell), explicit timeout; ambient interpreter/PYTHONPATH
     # per project-native convention (see evidence report).
     result = subprocess.run(
-        [sys.executable, "-m", "adhan", "--latitude", "35", "--longitude", "-78"],
+        [sys.executable, "-m", "alfalak", "--latitude", "35", "--longitude", "-78"],
         capture_output=True,
         text=True,
         timeout=60,
@@ -668,7 +668,7 @@ def test_cli_domain_error_characterization():
     # usage contract covers domain errors, so only the nonzero exit and the
     # error type on stderr are pinned, not the exact status/message.
     result = subprocess.run(
-        [sys.executable, "-m", "adhan", "--latitude", "91",
+        [sys.executable, "-m", "alfalak", "--latitude", "91",
          "--longitude", "0", "--date", "2015-07-12"],
         capture_output=True,
         text=True,

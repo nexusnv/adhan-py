@@ -1,6 +1,6 @@
 """Qibla direction for multiple cities."""
 
-from adhan import Qibla
+from alfalak import Qibla
 
 
 def main() -> None:

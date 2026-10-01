@@ -2,14 +2,14 @@
 
 ## Supported Versions
 
-Only the latest state of the `dev` branch (and any `1.x` release cut
-from it) receives security fixes. The `master` branch mirrors upstream
-and is intentionally untouched.
+Only the latest `1.x` release (and `main` between releases) receives
+security fixes. Upstream `adhanpy` (`<= 1.0.5`) is a separate package
+with its own maintenance and is out of scope here.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| `dev` branch latest (unreleased; the version string still reads `1.0.5` until the next release is cut — identify builds by branch/commit, not version) | :white_check_mark: |
-| Upstream releases `<= 1.0.5` and the `master` mirror | :x: |
+| `al-falak` `1.x` latest (this release line; identify builds by tag/commit) | :white_check_mark: |
+| Upstream `adhanpy` releases and any pre-fork mirrors | :x: |
 
 ## Reporting a Vulnerability
 
@@ -25,9 +25,8 @@ expect an initial response within 14 days.
   `tzdata` database (see README) — that is an environment requirement,
   not a declared package dependency. Please keep declared runtime
   dependencies at zero.
-- Dependabot `target-branch: dev` covers version updates only; security
-  updates land on the default branch (`master` mirror) and maintainers
-  retarget them to `dev` before merge.
+- Dependabot `target-branch: main` covers version updates only; security
+  updates land on the default branch (`main`) like any other change.
 - The prayer-time math is deterministic and offline; the realistic
   threat model is supply-chain (compromised dev dependency or action)
   and correctness (wrong times), not remote exploitation.

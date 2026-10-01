@@ -1,15 +1,15 @@
 import pytest
 
-import adhan
-from adhan import PrayerTimes as RootPrayerTimes
-from adhan import Qibla, SunnahTimes
-from adhan.exceptions import (
-    AdhanError,
+import alfalak
+from alfalak import PrayerTimes as RootPrayerTimes
+from alfalak import Qibla, SunnahTimes
+from alfalak.exceptions import (
+    AlFalakError,
     AstronomicalError,
     ConfigurationError,
     ValidationError,
 )
-from adhan.calculation import (
+from alfalak.calculation import (
     CalculationMethod,
     CalculationParameters,
     HighLatitudeRule,
@@ -17,14 +17,14 @@ from adhan.calculation import (
     PolarCircleRule,
     PrayerAdjustments,
 )
-from adhan.data import Coordinates, NightPortions, Prayer, ShadowLength
-from adhan.PrayerTimes import PrayerTimes
-from adhan.util.DateComponents import DateComponents
+from alfalak.data import Coordinates, NightPortions, Prayer, ShadowLength
+from alfalak.PrayerTimes import PrayerTimes
+from alfalak.util.DateComponents import DateComponents
 
 
 def test_root_exports_match_all():
-    assert getattr(adhan, "__all__") == [
-        "AdhanError",
+    assert getattr(alfalak, "__all__") == [
+        "AlFalakError",
         "AstronomicalError",
         "ConfigurationError",
         "ValidationError",
@@ -41,7 +41,7 @@ def test_root_exports_match_all():
         "Prayer",
     ]
     assert {
-        "AdhanError": AdhanError,
+        "AlFalakError": AlFalakError,
         "AstronomicalError": AstronomicalError,
         "ConfigurationError": ConfigurationError,
         "ValidationError": ValidationError,
@@ -56,12 +56,12 @@ def test_root_exports_match_all():
         "PrayerAdjustments": PrayerAdjustments,
         "Coordinates": Coordinates,
         "Prayer": Prayer,
-    } == {name: getattr(adhan, name) for name in adhan.__all__}
-    assert adhan.PrayerTimes is RootPrayerTimes
+    } == {name: getattr(alfalak, name) for name in alfalak.__all__}
+    assert alfalak.PrayerTimes is RootPrayerTimes
 
 
 def test_subpackage_exports():
-    from adhan import calculation, data
+    from alfalak import calculation, data
 
     assert {
         "CalculationMethod": CalculationMethod,
@@ -120,7 +120,7 @@ def test_docs_cover_public_api():
         Path(__file__).resolve().parent.parent / "docs" / "user" / "api-reference.md"
     ).read_text(encoding="utf-8")
 
-    for name in adhan.__all__:
+    for name in alfalak.__all__:
         assert re.search(rf"\b{name}\b", api_docs), name
     for name in ("time_for_prayer", "Qibla", "SunnahTimes"):
         assert re.search(rf"\b{name}\b", api_docs), name

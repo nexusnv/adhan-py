@@ -1,10 +1,10 @@
 import pytest
 from decimal import Decimal
-from adhan import PrayerTimes, Qibla
-from adhan.calculation import CalculationMethod, CalculationParameters
-from adhan.data.Coordinates import Coordinates
-from adhan.exceptions import AdhanError, ValidationError
-from adhan.util.DateComponents import DateComponents
+from alfalak import PrayerTimes, Qibla
+from alfalak.calculation import CalculationMethod, CalculationParameters
+from alfalak.data.Coordinates import Coordinates
+from alfalak.exceptions import AlFalakError, ValidationError
+from alfalak.util.DateComponents import DateComponents
 
 
 @pytest.mark.parametrize(
@@ -87,23 +87,23 @@ def test_malformed_coordinates_rejected_by_qibla():
         Qibla(("a", "b"))
 
 
-def test_malformed_coordinates_are_adhan_errors():
+def test_malformed_coordinates_are_alfalak_errors():
     try:
         PrayerTimes(
             ("a", "b"),
             DateComponents(2015, 7, 12),
             CalculationMethod.MUSLIM_WORLD_LEAGUE,
         )
-    except AdhanError:
+    except AlFalakError:
         pass
     else:
-        pytest.fail("expected AdhanError")
+        pytest.fail("expected AlFalakError")
 
 
 def test_decimal_coordinates_normalized_to_float():
     # Coordinates accepts Decimal but downstream float arithmetic (Qibla,
     # SolarTime) cannot consume it; fields must be plain floats, never a
-    # bare TypeError leaking through the AdhanError contract.
+    # bare TypeError leaking through the AlFalakError contract.
     coords = Coordinates(Decimal("35.7750"), Decimal("-78.6336"))
 
     assert isinstance(coords.latitude, float)

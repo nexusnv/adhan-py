@@ -2,7 +2,7 @@
 permanent suite).
 
 Boundary: PrayerTimes / Coordinates / CalculationParameters / Qibla /
-SunnahTimes (public API in src/adhan/__init__.py).
+SunnahTimes (public API in src/alfalak/__init__.py).
 Seed: 20260929. Generator: random.Random (no Hypothesis in project deps;
 reduced guarantees: finite witnesses, manual minimization only).
 Budgets: <=200 cases total, <120s wall time, input scalars only.
@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from adhan import (
+from alfalak import (
     CalculationMethod,
     CalculationParameters,
     Coordinates,
@@ -28,9 +28,9 @@ from adhan import (
     SunnahTimes,
     ValidationError,
 )
-from adhan.calculation.MethodsParameters import METHODS_PARAMETERS
-from adhan.exceptions import AstronomicalError, ConfigurationError
-from adhan.util.DateComponents import DateComponents
+from alfalak.calculation.MethodsParameters import METHODS_PARAMETERS
+from alfalak.exceptions import AstronomicalError, ConfigurationError
+from alfalak.util.DateComponents import DateComponents
 
 SEED = 20260929
 
@@ -80,7 +80,7 @@ def ordered_times(pt):
 
 
 # ---------------------------------------------------------------------------
-# Fixed examples (curated goldens from tests/test_PrayerTimes.py + README)
+# Fixed examples (curated goldens from tests/test_prayer_times.py + README)
 # ---------------------------------------------------------------------------
 
 
@@ -471,7 +471,7 @@ INVALID_PARAMS = [
 ]
 
 # Malformed (wrong-type) inputs: contract fixed — all raise ValidationError
-# (AdhanError), not builtin TypeError/ValueError.
+# (AlFalakError), not builtin TypeError/ValueError.
 MALFORMED = [
     ("G-MAL-000", ("35.7", "-78.6"), ValidationError),
     ("G-MAL-001", None, ValidationError),

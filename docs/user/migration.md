@@ -1,14 +1,14 @@
 ---
 title: Migration
-description: Migrate from adhanpy to adhan-py.
+description: Migrate from adhanpy to al-falak.
 ---
 
 # Migration
 
 This guide covers migrating from the `adhanpy` package (`import adhanpy`,
-[alphahm/adhanpy](https://github.com/alphahm/adhanpy)) to `adhan-py`
-(`import adhan`, this library). The two are separate, independently released
-libraries — not successive versions of the same package — but `adhan-py`
+[alphahm/adhanpy](https://github.com/alphahm/adhanpy)) to `al-falak`
+(`import alfalak`, this library). The two are separate, independently released
+libraries — not successive versions of the same package — but `al-falak`
 originates from the same [`batoulapps/adhan`](https://github.com/batoulapps/adhan)
 port lineage, so the public surface keeps the same class and method names and
 the switch is typically frictionless: change the install, change the import,
@@ -16,7 +16,7 @@ and handle the deliberate differences listed below.
 
 ## Why a separate library
 
-`adhan-py` is maintained on its own so it can track currently supported Python
+`Al-Falak` is maintained on its own so it can track currently supported Python
 versions, keep development dependencies and tooling current, and let this
 project's milestones evolve independently. In return you get a hardened,
 fully typed codebase with explicit error handling (below) and ongoing
@@ -31,7 +31,7 @@ values are comparable apart from the rounding fix noted in
 pip install adhanpy
 
 # New
-pip install adhan-py
+pip install al-falak
 ```
 
 ## Import changes
@@ -41,7 +41,7 @@ pip install adhan-py
 from adhanpy import PrayerTimes, CalculationMethod
 
 # New
-from adhan import PrayerTimes, CalculationMethod
+from alfalak import PrayerTimes, CalculationMethod
 ```
 
 ## Module structure
@@ -54,15 +54,15 @@ from adhanpy.calculation import CalculationMethod
 from adhanpy.data import Coordinates
 
 # New
-from adhan.calculation import CalculationMethod
-from adhan.data import Coordinates
+from alfalak.calculation import CalculationMethod
+from alfalak.data import Coordinates
 ```
 
-All public names are also importable from the package root (`from adhan import ...`).
+All public names are also importable from the package root (`from alfalak import ...`).
 
 ## Error handling
 
-The error hierarchy was introduced in v2.0.0:
+The error hierarchy was introduced in v1.0.0:
 
 ```python
 # Old (adhanpy 1.x)
@@ -71,8 +71,8 @@ try:
 except RuntimeError:
     ...
 
-# New (adhan-py 2.x)
-from adhan import AdhanError, AstronomicalError
+# New (al-falak 1.x)
+from alfalak import AlFalakError, AstronomicalError
 
 try:
     PrayerTimes(...)
@@ -86,13 +86,13 @@ raises `ConfigurationError`, and out-of-range coordinates/angles/intervals —
 including non-numeric coordinates — raise `ValidationError`. See
 [Errors](/errors/) for the full tree.
 
-## Breaking changes in v2.0.0
+## Breaking changes in v1.0.0
 
 | Change | Old behavior | New behavior |
 |---|---|---|
-| Error types | `RuntimeError`, `ValueError`, `TypeError` | `AdhanError` subclasses |
-| Package name | `adhanpy` | `adhan-py` |
-| Import name | `import adhanpy` | `import adhan` |
+| Error types | `RuntimeError`, `ValueError`, `TypeError` | `AlFalakError` subclasses |
+| Package name | `adhanpy` | `al-falak` |
+| Import name | `import adhanpy` | `import alfalak` |
 | Python support | 3.9+ | 3.11+ |
 
 ## Unchanged

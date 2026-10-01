@@ -1,7 +1,7 @@
 """High latitude rules for locations with extreme night lengths."""
 
 from datetime import datetime
-from adhan import (
+from alfalak import (
     PrayerTimes,
     CalculationParameters,
     HighLatitudeRule,

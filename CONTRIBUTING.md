@@ -1,4 +1,4 @@
-# Contributing to adhan-py
+# Contributing to al-falak
 
 Thank you for your interest in contributing! This document covers the development setup, testing, and contribution process.
 
@@ -12,18 +12,18 @@ Thank you for your interest in contributing! This document covers the developmen
 ### Clone and Install
 
 ```bash
-git clone https://github.com/nexusnv/adhan-py.git
-cd adhan-py
+git clone https://github.com/nexusnv/al-falak.git
+cd al-falak
 
 # Using uv (recommended)
 uv venv
 source .venv/bin/activate
-uv pip install -e ".[dev]"
+uv pip install -e . -r requirements.txt
 
 # Or using pip
 python3 -m venv venv
 source venv/bin/activate
-pip install -e ".[dev]"
+pip install -e . -r requirements.txt
 ```
 
 ## Running Tests
@@ -36,17 +36,15 @@ pytest
 pytest --no-cov
 
 # Run a specific test file
-pytest tests/test_PrayerTimes.py
+pytest tests/test_prayer_times.py
 
 # Run with verbose output
 pytest -v
 ```
 
-The test suite requires `pytest-mock` for some tests. Install it with:
-
-```bash
-pip install pytest-mock
-```
+Test doubles use the standard library (`unittest.mock`). No extra test
+plugins are required beyond `requirements.txt` (`black`, `pytest`,
+`pytest-cov`, `mypy`, `ruff`).
 
 ## Code Style
 
@@ -54,15 +52,15 @@ This project uses the following tools:
 
 | Tool | Purpose | Command |
 |---|---|---|
-| **ruff** | Linting | `ruff check src/ tests/` |
-| **black** | Formatting | `black src/ tests/` |
+| **black** | Formatting | `black --check src/` |
 | **mypy** | Type checking | `mypy src` |
 
-All are enforced in CI. Run them before submitting:
+All are enforced in CI (`test.yml`: `black --check src/`,
+`ruff check src/ tests/`, `mypy src`). Run them before submitting:
 
 ```bash
 ruff check src/ tests/
-black --check src/ tests/
+black --check src/
 mypy src
 ```
 

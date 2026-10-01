@@ -5,7 +5,7 @@ description: Compare all supported prayer time calculation methods.
 
 # Calculation Methods
 
-adhan-py supports 11 calculation methods. Each method defines Fajr and Isha angles (or intervals) and may include additional adjustments.
+Al-Falak supports 11 calculation methods. Each method defines Fajr and Isha angles (or intervals) and may include additional adjustments.
 
 ## Method comparison
 
@@ -26,7 +26,7 @@ adhan-py supports 11 calculation methods. Each method defines Fajr and Isha angl
 ## Using a method
 
 ```python
-from adhan import PrayerTimes, CalculationMethod
+from alfalak import PrayerTimes, CalculationMethod
 
 prayer_times = PrayerTimes(
     coordinates,
@@ -40,7 +40,7 @@ prayer_times = PrayerTimes(
 Override any method's defaults with `CalculationParameters`:
 
 ```python
-from adhan import CalculationParameters
+from alfalak import CalculationParameters
 
 params = CalculationParameters(
     fajr_angle=18,

@@ -5,7 +5,7 @@ description: Choose between Shafi and Hanafi Asr calculation methods.
 
 # Madhab
 
-The madhab (Islamic school of jurisprudence) determines how Asr prayer time is calculated. adhan-py supports both major madhabs.
+The madhab (Islamic school of jurisprudence) determines how Asr prayer time is calculated. Al-Falak supports both major madhabs.
 
 ## Madhab options
 
@@ -17,7 +17,7 @@ The madhab (Islamic school of jurisprudence) determines how Asr prayer time is c
 ## Using a madhab
 
 ```python
-from adhan import PrayerTimes, CalculationParameters, Madhab
+from alfalak import PrayerTimes, CalculationParameters, Madhab
 
 params = CalculationParameters()
 params.madhab = Madhab.HANAFI
@@ -41,7 +41,7 @@ This results in a later Asr time for Hanafi, typically 30–50 minutes later dep
 
 ```python
 from datetime import datetime
-from adhan import PrayerTimes, CalculationParameters, Madhab, CalculationMethod
+from alfalak import PrayerTimes, CalculationParameters, Madhab, CalculationMethod
 
 coordinates = (35.7750, -78.6336)
 today = datetime.now()

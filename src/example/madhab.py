@@ -1,7 +1,7 @@
 """Madhab selection: Shafi vs Hanafi Asr calculation."""
 
 from datetime import datetime
-from adhan import PrayerTimes, CalculationParameters, Madhab, CalculationMethod
+from alfalak import PrayerTimes, CalculationParameters, Madhab, CalculationMethod
 
 
 def main() -> None:

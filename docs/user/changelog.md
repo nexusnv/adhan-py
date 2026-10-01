@@ -1,14 +1,18 @@
 ---
 title: Changelog
-description: Version history for adhan-py.
+description: Version history for al-falak.
 ---
 
 # Changelog
 
-## 2.0.0
+## 1.0.0 — first independent `al-falak` release
 
-- **Breaking:** Package renamed from `adhanpy` to `adhan` (PyPI: `adhan-py`)
-- **Breaking:** Dedicated `AdhanError` hierarchy replaces builtins (`AstronomicalError`, `ConfigurationError`, `ValidationError`)
+> `al-falak` is versioned independently from `adhanpy` (a separate PyPI
+> package). Entries below marked `1.0.5` / `1.0.4` are upstream `adhanpy`
+> lineage, kept for provenance.
+
+- **Breaking:** Package renamed from `adhanpy` to `alfalak` (PyPI: `al-falak`)
+- **Breaking:** Dedicated `AlFalakError` hierarchy replaces builtins (`AstronomicalError`, `ConfigurationError`, `ValidationError`)
 - **Breaking:** Python >= 3.11 required (3.9/3.10 reached end-of-life)
 - Fix hour-rollover in `rounded_minute` (`10:59:31` now rounds to `11:00`)
 - Polar day/night and undefined Asr now raise with diagnostic messages
@@ -22,7 +26,7 @@ description: Version history for adhan-py.
 - Add `Qibla` direction calculation
 - Add polar-day/night estimation strategies (`PolarCircleRule`)
 - Add `SunnahTimes` (middle and last third of the night)
-- Add `python -m adhan` CLI
+- Add `python -m alfalak` CLI
 - Validate inputs: coordinates, angles, intervals
 - Build backend is now hatchling (setup.py removed)
 - Dev process: ruff lint gate, `mypy --disallow-untyped-defs`

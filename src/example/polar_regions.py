@@ -1,7 +1,12 @@
 """Polar region strategies for locations above the Arctic circle."""
 
 from datetime import datetime
-from adhan import PrayerTimes, CalculationParameters, PolarCircleRule, CalculationMethod
+from alfalak import (
+    PrayerTimes,
+    CalculationParameters,
+    PolarCircleRule,
+    CalculationMethod,
+)
 
 
 def main() -> None:

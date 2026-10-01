@@ -2,18 +2,18 @@
 
 ## Overview
 
-`adhan-py` is an offline library for calculating Islamic prayer times. It follows a pipeline architecture: input coordinates and date flow through astronomical calculations to produce prayer time outputs.
+`Al-Falak` is an offline library for Islamic astronomy, starting with precise prayer times and expanding into broader temporal calculations. It follows a pipeline architecture: input coordinates and date flow through astronomical models to produce accurate timekeeping outputs.
 
 ## Package Structure
 
 ```
-src/adhan/
+src/alfalak/
 ├── __init__.py          # Public API re-exports
-├── __main__.py          # CLI entry point (python -m adhan)
+├── __main__.py          # CLI entry point (python -m alfalak)
 ├── PrayerTimes.py       # Main prayer times calculator
 ├── Qibla.py             # Qibla direction calculator
 ├── SunnahTimes.py       # Sunnah night markers
-├── exceptions.py        # AdhanError hierarchy
+├── exceptions.py        # AlFalakError hierarchy
 ├── py.typed             # PEP 561 type marker
 │
 ├── calculation/         # Calculation configuration
@@ -86,7 +86,7 @@ Output: timezone-aware UTC datetime for each prayer
 ## Error Hierarchy
 
 ```
-AdhanError (base)
+AlFalakError (base)
 ├── AstronomicalError    # Sun position undefined (polar day/night)
 ├── ConfigurationError   # Invalid setup (method, madhab, etc.)
 └── ValidationError      # Out-of-range input (coordinates, angles)
@@ -97,5 +97,5 @@ AdhanError (base)
 - **No external dependencies** — pure Python standard library
 - **Fully typed** — all public APIs annotated, `py.typed` shipped
 - **Immutable data** — `Coordinates`, `Prayer`, etc. are frozen dataclasses
-- **Explicit errors** — no silent failures; all errors are `AdhanError` subclasses
+- **Explicit errors** — no silent failures; all errors are `AlFalakError` subclasses
 - **Tested** — 100% line coverage, 99%+ branch coverage

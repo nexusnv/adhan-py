@@ -1,19 +1,9 @@
-# adhan-py
+# al-falak
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
-![pytest](https://github.com/nexusnv/adhan-py/actions/workflows/test.yml/badge.svg)
+![pytest](https://github.com/nexusnv/al-falak/actions/workflows/test.yml/badge.svg)
 
-An offline Python library for calculating Islamic prayer times. It originates from the same [`batoulapps/adhan`](https://github.com/batoulapps/adhan) port lineage as [alphahm/adhanpy](https://github.com/alphahm/adhanpy) (via that Python port) and is developed and released as an independent library.
-
-Part of the `adhan` family of libraries:
-
-| Language | Package |
-|---|---|
-| JavaScript | [`adhan`](https://github.com/batoulapps/adhan-js) |
-| Swift | [`adhan-swift`](https://github.com/batoulapps/adhan-swift) |
-| Kotlin | [`adhan-kotlin`](https://github.com/batoulapps/adhan-kotlin) |
-| Java | [`adhan`](https://github.com/batoulapps/adhan-java) |
-| Python | **`adhan-py`** (this library) |
+`Al-Falak` is an offline library for Islamic astronomy, starting with precise prayer times and expanding into broader temporal calculations. It follows a pipeline architecture: input coordinates and date flow through astronomical models to produce accurate timekeeping outputs. It originates from the same [`batoulapps/adhan`](https://github.com/batoulapps/adhan) port lineage as [alphahm/adhanpy](https://github.com/alphahm/adhanpy) (via that Python port) and is developed and released as an independent library, from a detached fork of the original `adhanpy` repository.
 
 ## Features
 
@@ -25,7 +15,7 @@ Part of the `adhan` family of libraries:
 - **Madhab selection** — Shafi (default) and Hanafi for Asr calculation
 - **Qibla direction** — degrees clockwise from north
 - **Sunnah times** — middle and last third of the night
-- **CLI** — `python -m adhan` for quick terminal output
+- **CLI** — `python -m alfalak` for quick terminal output
 - **Fully typed** — PEP 561 `py.typed` marker, `mypy --disallow-untyped-defs` clean
 
 ## Requirements
@@ -35,14 +25,14 @@ Part of the `adhan` family of libraries:
 ## Installation
 
 ```bash
-pip install adhan-py
+pip install al-falak
 ```
 
 ## Quick Start
 
 ```python
 from datetime import datetime
-from adhan import PrayerTimes, CalculationMethod, Prayer
+from alfalak import PrayerTimes, CalculationMethod, Prayer
 
 # Coordinates for Raleigh, NC
 coordinates = (35.7750, -78.6336)
@@ -70,7 +60,7 @@ Pass a `ZoneInfo` object to get times in that timezone:
 
 ```python
 from zoneinfo import ZoneInfo
-from adhan import PrayerTimes, CalculationMethod
+from alfalak import PrayerTimes, CalculationMethod
 
 london_zone = ZoneInfo("Europe/London")
 prayer_times = PrayerTimes(
@@ -84,7 +74,7 @@ prayer_times = PrayerTimes(
 ### Custom Calculation Parameters
 
 ```python
-from adhan import PrayerTimes, CalculationParameters
+from alfalak import PrayerTimes, CalculationParameters
 
 params = CalculationParameters(
     fajr_angle=18,
@@ -101,7 +91,7 @@ prayer_times = PrayerTimes(
 ### Qibla Direction
 
 ```python
-from adhan import Qibla
+from alfalak import Qibla
 
 direction = Qibla((35.7750, -78.6336)).direction
 print(f"Qibla: {direction:.1f}° clockwise from north")
@@ -110,7 +100,7 @@ print(f"Qibla: {direction:.1f}° clockwise from north")
 ### Sunnah Times
 
 ```python
-from adhan import PrayerTimes, SunnahTimes, CalculationMethod
+from alfalak import PrayerTimes, SunnahTimes, CalculationMethod
 
 prayer_times = PrayerTimes(coordinates, today, CalculationMethod.MUSLIM_WORLD_LEAGUE)
 sunnah = SunnahTimes(prayer_times)
@@ -122,12 +112,12 @@ print(f"Last third:         {sunnah.last_third_of_the_night}")
 ### Polar Regions
 
 ```python
-from adhan import PrayerTimes, CalculationParameters, PolarCircleRule
+from alfalak import PrayerTimes, CalculationParameters, PolarCircleRule
 
 params = CalculationParameters(
     polar_circle_rule=PolarCircleRule.NEAREST_LATITUDE,  # default
 )
-prayer_times = Prayer_times(
+prayer_times = PrayerTimes(
     (78.2232, 15.6267),  # Longyearbyen, Svalbard
     datetime.now(),
     calculation_parameters=params,
@@ -137,7 +127,7 @@ prayer_times = Prayer_times(
 ### Command Line
 
 ```bash
-python -m adhan --latitude 35.7750 --longitude -78.6336 --date 2015-07-12 --method NORTH_AMERICA
+python -m alfalak --latitude 35.7750 --longitude -78.6336 --date 2015-07-12 --method NORTH_AMERICA
 ```
 
 Output:
@@ -153,18 +143,18 @@ isha=2015-07-13T01:57:00+00:00
 ## API Reference
 
 See [`docs/user/api-reference.md`](docs/user/api-reference.md) for the full API reference
-([rendered site](https://nexusnv.github.io/adhan-py/api-reference/)).
+([rendered site](https://nexusnv.github.io/al-falak/api-reference/)).
 
 ## Migrating from adhanpy
 
-`adhan-py` is developed as an independent library, but it originates from the same
+`Al-Falak` is developed as an independent library, but it originates from the same
 [`batoulapps/adhan`](https://github.com/batoulapps/adhan) port lineage as
 [`adhanpy`](https://github.com/alphahm/adhanpy), so the public surface keeps the same
 class and method names — switching packages is typically a matter of changing the
-install (`adhanpy` → `adhan-py`) and the import (`adhanpy` → `adhan`). The move exists
+install (`adhanpy` → `al-falak`) and the import (`adhanpy` → `alfalak`). The move exists
 to track currently supported Python versions, keep development dependencies and tooling
 current, and leave room for the milestones of this project to evolve on their own.
-In return you get a hardened `AdhanError` hierarchy, fully typed APIs, and ongoing
+In return you get a hardened `AlFalakError` hierarchy, fully typed APIs, and ongoing
 maintenance. See [the migration guide](docs/user/migration.md) for details.
 
 ## Examples
@@ -216,4 +206,4 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 
 - **batoulapps** — original `adhan` implementation and calculation methods
 - **alphahm** — original `adhanpy` Python port
-- **Azahari Zaman** — community maintenance of `adhan-py`
+- **Azahari Zaman** — community maintenance of `al-falak`

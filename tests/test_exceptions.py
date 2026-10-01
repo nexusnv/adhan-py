@@ -1,6 +1,6 @@
 import pytest
-from adhan.exceptions import (
-    AdhanError,
+from alfalak.exceptions import (
+    AlFalakError,
     AstronomicalError,
     ConfigurationError,
     ValidationError,
@@ -8,13 +8,13 @@ from adhan.exceptions import (
 
 
 def test_hierarchy():
-    assert issubclass(AstronomicalError, AdhanError)
-    assert issubclass(ConfigurationError, AdhanError)
-    assert issubclass(ValidationError, AdhanError)
-    assert not issubclass(AdhanError, RuntimeError)
-    assert not issubclass(AdhanError, ValueError)
+    assert issubclass(AstronomicalError, AlFalakError)
+    assert issubclass(ConfigurationError, AlFalakError)
+    assert issubclass(ValidationError, AlFalakError)
+    assert not issubclass(AlFalakError, RuntimeError)
+    assert not issubclass(AlFalakError, ValueError)
 
 
 def test_catch_all_base():
-    with pytest.raises(AdhanError):
+    with pytest.raises(AlFalakError):
         raise AstronomicalError("polar day")
