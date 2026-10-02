@@ -41,6 +41,15 @@ for name, coords in cities:
     print(f"{name}: {Qibla(coords).direction:.1f}°")
 ```
 
+## Distance to Makkah
+
+```python
+from alfalak import Qibla
+
+qibla = Qibla((35.7750, -78.6336))
+print(f"{qibla.direction:.1f}°, {qibla.distance_to_makkah_km:.0f} km")
+```
+
 ## How it works
 
 The Qibla direction is calculated using spherical trigonometry:
@@ -53,6 +62,17 @@ direction = atan2(
 ```
 
 Where Makkah's coordinates are 21.4225°N, 39.8262°E.
+
+This is a spherical-Earth model: typically within a few arcminutes of the
+WGS84 ellipsoidal azimuth, worst case ~0.3–0.35° (per published
+spherical-vs-ellipsoidal comparisons: IJRS great-circle study up to
+~20 arcmin, Walisongo/Al-Hilal ~8 arcmin vs Vincenty). The 4-dp coordinate above
+is canonical (~11 m); code carries extra display digits for compatibility.
+
+Edge cases never raise: at Makkah itself the bearing is degenerate
+(returns a float in [0, 360)), and at the true antipode
+(~21.42°S, 140.17°W) every bearing is equidistant. Distance uses the
+spherical great-circle with mean radius 6371.0088 km.
 
 ## See also
 

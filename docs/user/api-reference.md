@@ -72,6 +72,7 @@ Qibla(coordinates: tuple[float, float] | Coordinates)
 | Attribute | Type | Description |
 |---|---|---|
 | `direction` | `float` | Degrees clockwise from north |
+| `distance_to_makkah_km` | `float` | Spherical great-circle distance to Makkah in km |
 
 ## SunnahTimes
 
