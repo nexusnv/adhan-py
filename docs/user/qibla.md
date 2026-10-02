@@ -101,16 +101,43 @@ direction = atan2(
 
 Where Makkah's coordinates are 21.4225°N, 39.8262°E.
 
-This is a spherical-Earth model: typically within a few arcminutes of the
-WGS84 ellipsoidal azimuth, worst case ~0.3–0.35° (per published
-spherical-vs-ellipsoidal comparisons: IJRS great-circle study up to
-~20 arcmin, Walisongo/Al-Hilal ~8 arcmin vs Vincenty). The 4-dp coordinate above
+This is a spherical-Earth model — see [Accuracy and error budget](#accuracy-and-error-budget)
+for how far that assumption stretches. The 4-dp coordinate above
 is canonical (~11 m); code carries extra display digits for compatibility.
 
 Edge cases never raise: at Makkah itself the bearing is degenerate
 (returns a float in [0, 360)), and at the true antipode
 (~21.42°S, 140.17°W) every bearing is equidistant. Distance uses the
 spherical great-circle with mean radius 6371.0088 km.
+
+## Accuracy and error budget
+
+Which error dominates depends on the model you pick:
+
+- **Bearing, spherical (default):** typically within a few arcminutes of the
+  WGS84 ellipsoidal azimuth, worst case ~0.3–0.35° (IJRS great-circle study
+  up to ~20 arcmin; Walisongo/Al-Hilal ~8 arcmin vs Vincenty). Fine for
+  prayer; pick ellipsoidal when arcminutes matter to you.
+- **Bearing, ellipsoidal:** Karney inverse vendored from GeographicLib —
+  matches the GeographicLib 2.1 reference within the committed test goldens
+  (≤1e-6° / ≤1 m), far below every other term here.
+- **Kaaba coordinates:** 4 dp (`21.4225°N, 39.8262°E`, ~11 m) is canonical;
+  code carries extra display digits for compatibility. 11 m at 10,000 km is
+  ~0.00006°, negligible next to the model terms above.
+- **Distance, spherical:** two stacked conventions — the radius choice
+  (`6371.0088 km` here; `6371.0`/`6378.137` variants shift ~0.1–0.3%) plus
+  the shape error below.
+- **Distance, ellipsoidal:** WGS84 geodesic, within ≤1 m of the reference
+  in the committed goldens.
+- **Haversine is not "high-precision":** Haversine (like any spherical
+  formula) assumes one radius, but flattening `f ≈ 1/298` means Earth's
+  radii vary ~0.3% (equatorial 6378.137 km vs polar 6356.752 km differ by
+  ~0.33%). Spherical distances therefore carry an error floor of roughly
+  ~0.3%, varying with latitude and azimuth — not a fixed value. Pinning `R`
+  only fixes the scale convention, never the shape error; the precise path
+  is the ellipsoidal inverse, not a tuned Haversine.
+- **Compass heading:** exactly as good as your declination value — model
+  lookups drift with secular variation, so use a current one.
 
 ## See also
 
