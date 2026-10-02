@@ -4,6 +4,15 @@ import math
 def julian_day(
     year: int, month: int, day: int, hours: float = 0.0, minutes: float = 0.0
 ) -> float:
+    """Convert a Gregorian calendar date to Julian Date (Meeus Ch.7).
+
+    Gregorian-only: the Julian-calendar branch (B = 0) is not implemented,
+    so pre-1582 dates are computed as continuous proleptic Gregorian with
+    no 1582-10-04 -> 1582-10-15 reform jump (~10 days at the reform,
+    century-dependent earlier, vs historical Julian reckoning). Correct
+    for prayer use — all operational dates are centuries past the reform —
+    and asserted in tests so the limitation is a decision, not a latent quirk.
+    """
     if minutes != 0.0:
         hours = hours + (minutes / 60.0)
 

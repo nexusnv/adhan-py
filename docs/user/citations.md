@@ -18,8 +18,18 @@ The prayer time calculation methods, mathematical formulas, and computational st
 - **US Naval Observatory (USNO)** — Solar position algorithms and twilight calculations. Reference: [aa.usno.navy.mil](https://aa.usno.navy.mil/)
 - **PrayTimes.org** — Standard prayer time calculation methods and Fajr/Isha angle conventions. Reference: [praytimes.org](https://praytimes.org/)
 
-## Calculation method sources
+## Geodesy and geomagnetism sources
 
+The Qibla direction, distance, and compass-heading calculations are derived from:
+
+- **Charles F. F. Karney** — *Algorithms for geodesics*, *J. Geodesy* 87, 43–55 (2013). DOI: [10.1007/s00190-012-0578-z](https://doi.org/10.1007/s00190-012-0578-z). The ellipsoidal inverse is vendored from [GeographicLib](https://geographiclib.sourceforge.io/) (MIT licensed).
+- **T. Vincenty** — *Direct and inverse solutions of geodesics on the ellipsoid with application of nested equations*, *Survey Review* 23(176), 88–93 (1975). DOI: [10.1179/sre.1975.23.176.88](https://doi.org/10.1179/sre.1975.23.176.88). Deliberately not used: documented non-convergence for nearly-antipodal points.
+- **National Geospatial-Intelligence Agency (NGA)** — WGS 84 defining constants (`a = 6378137.0 m` exact, `f = 1/298.257223563` exact).
+- **I. Todhunter** — *Spherical Trigonometry for the Use of Colleges and Schools* (p. 50). The spherical bearing formula.
+- **Spherical-vs-ellipsoidal bearing comparisons** — reported worst-case figures repeated from the `Qibla` docstring lineage; full primary references to be pinned before quoting specific studies.
+- **NOAA National Centers for Environmental Information (NCEI)** — magnetic declination sign convention (positive east) and the World Magnetic Model (WMM2025, 5-year cycle).
+
+## Calculation method sources
 | Method | Source |
 |---|---|
 | Muslim World League | Fajr angle 18°, Isha angle 17° |
