@@ -4,7 +4,7 @@ import pytest
 from alfalak import Qibla
 from alfalak.data.Constants import EARTH_MEAN_RADIUS_KM
 from alfalak.data.Coordinates import Coordinates
-from alfalak.exceptions import ValidationError
+from alfalak.exceptions import ConfigurationError, ValidationError
 from alfalak.Qibla import MAKKAH
 
 
@@ -73,9 +73,9 @@ def test_qibla_distance_to_makkah_km(latitude, longitude, expected):
     # Spherical great-circle with R = 6371.0088 km, cross-checked via an
     # independent vector dot-product computation (agreement <0.02 km);
     # +/-10 km documents the radius-convention tolerance, not precision.
-    assert Qibla(
-        (latitude, longitude)
-    ).distance_to_makkah_km == pytest.approx(expected, abs=10.0)
+    assert Qibla((latitude, longitude)).distance_to_makkah_km == pytest.approx(
+        expected, abs=10.0
+    )
 
 
 def test_qibla_distance_self_is_zero():
@@ -88,3 +88,58 @@ def test_qibla_distance_antipode_near_half_circumference():
     distance = Qibla(ANTIPODE_OF_MAKKAH).distance_to_makkah_km
     assert distance == pytest.approx(math.pi * EARTH_MEAN_RADIUS_KM, abs=1.0)
     assert not math.isnan(distance)
+
+
+def test_qibla_default_method_is_spherical():
+    qibla = Qibla((35.7750, -78.6336))
+    assert qibla.method == "spherical"
+    assert qibla.direction == pytest.approx(55.825, abs=1e-2)
+
+
+@pytest.mark.parametrize(
+    "latitude, longitude, expected_direction, expected_distance",
+    [
+        # Ellipsoidal goldens: GeographicLib 2.1, generated 2026-10-03.
+        (35.7750, -78.6336, 55.739246718, 10961.845992),
+        (3.1390, 101.6869, 292.442376339, 6979.153497),
+        (-33.8688, 151.2093, 277.318844347, 13236.950907),
+    ],
+)
+def test_qibla_ellipsoidal_opt_in(
+    latitude, longitude, expected_direction, expected_distance
+):
+    qibla = Qibla((latitude, longitude), method="ellipsoidal")
+    assert qibla.method == "ellipsoidal"
+    assert qibla.direction == pytest.approx(expected_direction, abs=1e-6)
+    assert qibla.distance_to_makkah_km == pytest.approx(expected_distance, abs=1e-3)
+
+
+def test_qibla_ellipsoidal_self_and_antipode_no_raise():
+    sel = Qibla((MAKKAH.latitude, MAKKAH.longitude), method="ellipsoidal")
+    assert 0 <= sel.direction < 360
+    assert sel.distance_to_makkah_km == pytest.approx(0.0, abs=1e-9)
+    anti = Qibla(ANTIPODE_OF_MAKKAH, method="ellipsoidal")
+    assert 0 <= anti.direction < 360
+    assert not math.isnan(anti.direction)
+    assert not math.isnan(anti.distance_to_makkah_km)
+
+
+def test_qibla_ellipsoidal_stays_within_documented_bound_of_spherical():
+    for latitude, longitude in [
+        (35.7750, -78.6336),
+        (40.7128, -74.0060),
+        (51.5074, -0.1278),
+        (30.0444, 31.2357),
+        (3.1390, 101.6869),
+        (-6.2088, 106.8456),
+        (-33.8688, 151.2093),
+    ]:
+        spherical = Qibla((latitude, longitude)).direction
+        ellipsoidal = Qibla((latitude, longitude), method="ellipsoidal").direction
+        delta = abs((ellipsoidal - spherical + 180) % 360 - 180)
+        assert delta < 0.35
+
+
+def test_qibla_unknown_method_rejected():
+    with pytest.raises(ConfigurationError, match="(?i)method"):
+        Qibla((35.7750, -78.6336), method="bogus")

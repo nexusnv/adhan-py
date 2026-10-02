@@ -64,15 +64,19 @@ Exactly one of `calculation_method` or `calculation_parameters` must be provided
 ## Qibla
 
 ```python
-Qibla(coordinates: tuple[float, float] | Coordinates)
+Qibla(coordinates: tuple[float, float] | Coordinates, method: str = "spherical")
 ```
+
+`method` is `"spherical"` (default) or `"ellipsoidal"` (Karney inverse on
+WGS84); anything else raises `ConfigurationError`.
 
 **Attributes:**
 
 | Attribute | Type | Description |
 |---|---|---|
 | `direction` | `float` | Degrees clockwise from north |
-| `distance_to_makkah_km` | `float` | Spherical great-circle distance to Makkah in km |
+| `distance_to_makkah_km` | `float` | Distance to Makkah in km (per `method`) |
+| `method` | `str` | `"spherical"` (default) or `"ellipsoidal"` |
 
 ## SunnahTimes
 
