@@ -50,3 +50,30 @@ def test_julian_hours():
     j2 = CalendricalHelper.julian_day(2010, 1, 1, 48)
 
     assert j1 == pytest.approx(j2, abs=1e-7)
+
+
+def test_julian_day_j2000_anchor():
+    # Slice 1.1 golden: Meeus, Astronomical Algorithms 2nd ed., Ch.7
+    # (Example 7.a). J2000.0 is JD 2451545.0 TT = 2000-01-01 12:00 TT.
+    assert CalendricalHelper.julian_day(2000, 1, 1, 12.0) == pytest.approx(
+        2451545.0, abs=1e-9
+    )
+    assert CalendricalHelper.julian_century(2451545.0) == pytest.approx(0.0, abs=1e-12)
+
+
+def test_julian_day_gregorian_only_reform_boundary():
+    # Slice 1.1 documented limitation: no Julian-calendar branch (Meeus Ch.7
+    # uses B = 0 for Julian dates; this implementation always applies the
+    # Gregorian B = floor(2 - A + A/4)). The reform gap 1582-10-04 Julian ->
+    # 1582-10-15 Gregorian is therefore computed as continuous proleptic
+    # Gregorian (11 days, no 10-day jump). Correct for prayer use -- all
+    # operational dates are centuries past the reform -- but asserted here
+    # so the limitation is a decision, not a latent quirk.
+    assert CalendricalHelper.julian_day(
+        1582, 10, 15
+    ) - CalendricalHelper.julian_day(1582, 10, 4) == pytest.approx(11.0)
+    # Historical Julian-calendar JD of 1582-10-04 is 2299159.5; the
+    # proleptic-Gregorian value differs by exactly the 10 omitted days.
+    assert CalendricalHelper.julian_day(1582, 10, 4) == pytest.approx(
+        2299159.5 - 10.0, abs=1e-9
+    )
