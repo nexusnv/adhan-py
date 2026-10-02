@@ -52,7 +52,7 @@ print(f"{qibla.direction:.1f}°, {qibla.distance_to_makkah_km:.0f} km")
 
 ## Ellipsoidal (WGS84) mode
 
-The default above treats Earth as a sphere. For the precise geodesic on the
+The default above treats Earth as a sphere. For the geodesic on the
 WGS84 ellipsoid (Karney inverse, stdlib-only, no new dependencies), opt in:
 
 ```python
@@ -112,18 +112,19 @@ spherical great-circle with mean radius 6371.0088 km.
 
 ## Accuracy and error budget
 
-Which error dominates depends on the model you pick:
+The two models give slightly different answers; the differences below are
+observed model differences, not a ranking — the library provides both and
+which to use is up to you:
 
 - **Bearing, spherical (default):** typically within a few arcminutes of the
-  WGS84 ellipsoidal azimuth, worst case ~0.3–0.35° (IJRS great-circle study
-  up to ~20 arcmin; Walisongo/Al-Hilal ~8 arcmin vs Vincenty). Fine for
-  prayer; pick ellipsoidal when arcminutes matter to you.
+  WGS84 ellipsoidal azimuth, worst case ~0.3–0.35° (reported comparisons;
+  primary references to be pinned — see Citations).
 - **Bearing, ellipsoidal:** Karney inverse vendored from GeographicLib —
   matches the GeographicLib 2.1 reference within the committed test goldens
-  (≤1e-6° / ≤1 m), far below every other term here.
+  (≤1e-6° / ≤1 m).
 - **Kaaba coordinates:** 4 dp (`21.4225°N, 39.8262°E`, ~11 m) is canonical;
   code carries extra display digits for compatibility. 11 m at 10,000 km is
-  ~0.00006°, negligible next to the model terms above.
+  ~0.00006°.
 - **Distance, spherical:** two stacked conventions — the radius choice
   (`6371.0088 km` here; `6371.0`/`6378.137` variants shift ~0.1–0.3%) plus
   the shape error below.
@@ -131,11 +132,11 @@ Which error dominates depends on the model you pick:
   in the committed goldens.
 - **Haversine is not "high-precision":** Haversine (like any spherical
   formula) assumes one radius, but flattening `f ≈ 1/298` means Earth's
-  radii vary ~0.3% (equatorial 6378.137 km vs polar 6356.752 km differ by
-  ~0.33%). Spherical distances therefore carry an error floor of roughly
-  ~0.3%, varying with latitude and azimuth — not a fixed value. Pinning `R`
-  only fixes the scale convention, never the shape error; the precise path
-  is the ellipsoidal inverse, not a tuned Haversine.
+  radii span ~0.33% from equator to pole (equatorial 6378.137 km vs polar
+  6356.752 km). Spherical distances therefore have a path-dependent shape
+  error, not a fixed error floor. Pinning `R` only fixes the scale
+  convention, never the shape error; the ellipsoidal path comes from the
+  ellipsoidal inverse, not a tuned Haversine.
 - **Compass heading:** exactly as good as your declination value — model
   lookups drift with secular variation, so use a current one.
 
