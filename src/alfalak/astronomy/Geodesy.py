@@ -20,8 +20,10 @@ formatting and type annotations are ours (stdlib ``math`` only).
 """
 
 import math
+import numbers
 import sys
 from collections.abc import Sequence
+from decimal import Decimal
 
 from alfalak.exceptions import AstronomicalError, ValidationError
 
@@ -881,28 +883,43 @@ def geodesic_inverse(
 ) -> tuple[float, float]:
     """Solve the inverse geodesic problem on the WGS84 ellipsoid.
 
-    :param lat1: latitude of the first point in degrees.
-    :param lon1: longitude of the first point in degrees.
-    :param lat2: latitude of the second point in degrees.
-    :param lon2: longitude of the second point in degrees.
+    :param lat1: latitude of the first point in degrees, within [-90, 90].
+    :param lon1: longitude of the first point in degrees, within [-180, 180].
+    :param lat2: latitude of the second point in degrees, within [-90, 90].
+    :param lon2: longitude of the second point in degrees, within [-180, 180].
     :return: ``(forward_azimuth_deg, distance_m)`` — forward azimuth is in
         (-180, 180] (east positive, matching GeographicLib convention);
         distance is in metres, never NaN.
 
-    Raises :class:`ValidationError` for out-of-range/non-finite input and
+    Raises :class:`ValidationError` for out-of-range/non-finite/non-numeric
+    input (booleans rejected, mirroring ``Coordinates``) and
     :class:`AstronomicalError` if the iteration fails to converge (defensive:
     Karney converges for all inputs on WGS84).
     """
-    for name, value, lo, hi in (
-        ("lat1", lat1, -90.0, 90.0),
-        ("lat2", lat2, -90.0, 90.0),
-    ):
-        if not math.isfinite(value) or not lo <= value <= hi:
+    for name, value in (("lat1", lat1), ("lat2", lat2)):
+        if isinstance(value, bool) or not isinstance(value, (numbers.Real, Decimal)):
             raise ValidationError(
-                f"Latitude must be within [{lo}, {hi}], got {value!r} ({name})."
+                f"Latitude must be a real number, got {value!r} ({name})."
+            )
+        if not math.isfinite(value) or not -90.0 <= value <= 90.0:
+            raise ValidationError(
+                f"Latitude must be within [-90.0, 90.0], got {value!r} ({name})."
             )
     for name, value in (("lon1", lon1), ("lon2", lon2)):
-        if not math.isfinite(value):
-            raise ValidationError(f"Longitude must be finite, got {value!r} ({name}).")
-    _, s12, salp1, calp1, _, _, _, _, _, _ = _gen_inverse(lat1, lon1, lat2, lon2)
-    return _atan2d(salp1, calp1), s12
+        if isinstance(value, bool) or not isinstance(value, (numbers.Real, Decimal)):
+            raise ValidationError(
+                f"Longitude must be a real number, got {value!r} ({name})."
+            )
+        if not math.isfinite(value) or not -180.0 <= value <= 180.0:
+            raise ValidationError(
+                f"Longitude must be within [-180.0, 180.0], got {value!r} ({name})."
+            )
+    _, s12, salp1, calp1, _, _, _, _, _, _ = _gen_inverse(
+        float(lat1), float(lon1), float(lat2), float(lon2)
+    )
+    azi = _atan2d(salp1, calp1)
+    if azi == -180.0:
+        azi = 180.0
+    else:
+        azi = azi + 0.0  # normalize -0.0 to +0.0
+    return azi, s12

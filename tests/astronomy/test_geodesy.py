@@ -96,6 +96,66 @@ def test_inverse_rejects_bad_input(lat1, lon1):
         geodesic_inverse(lat1, lon1, MAKKA_LAT, MAKKA_LON)
 
 
+@pytest.mark.parametrize(
+    "lat2, lon2",
+    [(91.0, 0.0), (-91.0, 0.0), (float("nan"), 0.0), (0.0, float("inf"))],
+    ids=["lat2-91", "lat2-plus-91", "lat2-nan", "lon2-inf"],
+)
+def test_inverse_rejects_bad_second_point(lat2, lon2):
+    with pytest.raises(ValidationError, match="(?i)latitude|longitude"):
+        geodesic_inverse(MAKKA_LAT, MAKKA_LON, lat2, lon2)
+
+
+@pytest.mark.parametrize(
+    "lat1, lon1, lat2, lon2",
+    [
+        (True, 0.0, MAKKA_LAT, MAKKA_LON),
+        (0.0, False, MAKKA_LAT, MAKKA_LON),
+        (MAKKA_LAT, MAKKA_LON, True, 0.0),
+        ("21.4", 0.0, MAKKA_LAT, MAKKA_LON),
+        (0.0, None, MAKKA_LAT, MAKKA_LON),
+        (0.0, 0.0, MAKKA_LAT, "39.8"),
+    ],
+    ids=[
+        "lat1-bool",
+        "lon1-bool",
+        "lat2-bool",
+        "lat1-str",
+        "lon1-none",
+        "lon2-str",
+    ],
+)
+def test_inverse_rejects_non_numeric(lat1, lon1, lat2, lon2):
+    with pytest.raises(ValidationError, match="(?i)latitude|longitude|real number"):
+        geodesic_inverse(lat1, lon1, lat2, lon2)
+
+
+@pytest.mark.parametrize(
+    "lat1, lon1, lat2, lon2",
+    [
+        (0.0, 181.0, MAKKA_LAT, MAKKA_LON),
+        (0.0, -181.0, MAKKA_LAT, MAKKA_LON),
+        (MAKKA_LAT, MAKKA_LON, 0.0, 200.0),
+        (0.0, 0.0, 0.0, 540.0),
+    ],
+    ids=["lon1-181", "lon1-minus-181", "lon2-200", "lon2-540"],
+)
+def test_inverse_rejects_longitude_out_of_range(lat1, lon1, lat2, lon2):
+    with pytest.raises(ValidationError, match="(?i)longitude"):
+        geodesic_inverse(lat1, lon1, lat2, lon2)
+
+
+def test_inverse_azimuth_never_minus_180_or_negative_zero():
+    # Documented range is (-180, 180]: exact -180 must map to 180,
+    # and -0.0 must normalize to +0.0.
+    azi, _ = geodesic_inverse(0.0, 0.0, 0.0, 180.0)
+    assert azi != -180.0
+    assert math.copysign(1.0, azi) > 0 or azi != 0.0
+    azi, _ = geodesic_inverse(0.0, 0.0, 0.0, -180.0)
+    assert azi != -180.0
+    assert azi == 0.0 and math.copysign(1.0, azi) > 0
+
+
 def test_inverse_non_convergence_raises_astronomical_error(monkeypatch):
     from alfalak.astronomy import Geodesy as GeodesyModule
     from alfalak.exceptions import AstronomicalError
