@@ -50,9 +50,25 @@ qibla = Qibla((35.7750, -78.6336))
 print(f"{qibla.direction:.1f}°, {qibla.distance_to_makkah_km:.0f} km")
 ```
 
-## How it works
+## Ellipsoidal (WGS84) mode
 
-The Qibla direction is calculated using spherical trigonometry:
+The default above treats Earth as a sphere. For the precise geodesic on the
+WGS84 ellipsoid (Karney inverse, stdlib-only, no new dependencies), opt in:
+
+```python
+from alfalak import Qibla
+
+qibla = Qibla((35.7750, -78.6336), method="ellipsoidal")
+print(f"{qibla.direction:.3f}°, {qibla.distance_to_makkah_km:.3f} km")
+```
+
+Any other `method` raises `ConfigurationError`. The spherical-vs-ellipsoidal
+difference is typically a few arcminutes, worst case ~0.3–0.35° — use the
+ellipsoidal mode when that matters to you, spherical otherwise.
+
+## How it works (spherical default)
+
+The default Qibla direction is calculated using spherical trigonometry:
 
 ```
 direction = atan2(
