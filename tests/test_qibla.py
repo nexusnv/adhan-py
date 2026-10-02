@@ -184,6 +184,16 @@ def test_qibla_magnetic_accepts_int_and_decimal():
     assert qibla.magnetic_direction(Fraction(1, 2)) == pytest.approx(55.325, abs=1e-2)
 
 
+def test_qibla_magnetic_huge_finite_stays_in_range():
+    # unwind_angle's floor form cancels catastrophically past ~1e290;
+    # the fmod reduction must keep every finite input in [0, 360).
+    qibla = Qibla((35.7750, -78.6336))
+    for declination in (9.99e305, -9.99e305, 1.5e308, -1.5e308, 7.77e307):
+        result = qibla.magnetic_direction(declination)
+        assert 0 <= result < 360
+        assert not math.isnan(result)
+
+
 @pytest.mark.parametrize(
     "declination",
     [None, "10", True, False, float("nan"), float("inf"), -float("inf"), 10**1000],

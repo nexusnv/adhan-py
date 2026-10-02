@@ -82,7 +82,7 @@ WGS84); anything else raises `ConfigurationError`.
 
 | Method | Returns | Description |
 |---|---|---|
-| `magnetic_direction(declination_deg: float)` | `float` | Compass heading: true direction minus east-positive declination, unwound to [0, 360) |
+| `magnetic_direction(declination_deg)` | `float` | Compass heading: true direction minus east-positive declination, unwound to [0, 360); accepts any real number (int/float/Fraction/Decimal) |
 
 ## SunnahTimes
 

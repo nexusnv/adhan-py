@@ -106,7 +106,7 @@ class Qibla:
         self.direction: float = direction
         self.distance_to_makkah_km: float = distance_km
 
-    def magnetic_direction(self, declination_deg: float | Decimal) -> float:
+    def magnetic_direction(self, declination_deg: numbers.Real | Decimal) -> float:
         """Compass heading toward Makkah for a magnetic compass.
 
         ``direction`` is always true-north (that is the default); pass your
@@ -142,4 +142,7 @@ class Qibla:
             raise ValidationError(
                 "Declination must be finite, " f"got {declination_deg!r}."
             )
-        return unwind_angle(self.direction - declination)
+        # Reduce modulo 360 first: unwind_angle's floor-based remainder loses
+        # all precision for huge finite inputs (catastrophic cancellation),
+        # while math.fmod is exactly rounded. Identity for |d| < 360.
+        return unwind_angle(self.direction - math.fmod(declination, 360.0))
