@@ -78,6 +78,12 @@ WGS84); anything else raises `ConfigurationError`.
 | `distance_to_makkah_km` | `float` | Distance to Makkah in km (per `method`) |
 | `method` | `str` | `"spherical"` (default) or `"ellipsoidal"` |
 
+**Methods:**
+
+| Method | Returns | Description |
+|---|---|---|
+| `magnetic_direction(declination_deg: float)` | `float` | Compass heading: true direction minus east-positive declination, unwound to [0, 360) |
+
 ## SunnahTimes
 
 ```python
