@@ -66,6 +66,28 @@ Any other `method` raises `ConfigurationError`. The spherical-vs-ellipsoidal
 difference is typically a few arcminutes, worst case ~0.3–0.35° — use the
 ellipsoidal mode when that matters to you, spherical otherwise.
 
+## Magnetic compass heading
+
+`direction` is true-north (that is the default). A magnetic compass points
+at magnetic north instead, so pass your local declination to get the needle
+heading:
+
+```python
+from alfalak import Qibla
+
+qibla = Qibla((35.7750, -78.6336))
+print(f"True: {qibla.direction:.1f}°")
+print(f"Compass: {qibla.magnetic_direction(-8.0):.1f}°")  # synthetic -8°W
+```
+
+Sign convention (NOAA NCEI): declination is positive east of true north —
+"east is least", i.e. `magnetic = true − declination_east`. Eastern values
+subtract, western values (pass negative) add. This library does not look up
+your declination; get it from a compass app, chart, or magnetic model. Model
+values drift over time (secular variation; e.g. WMM2025, valid 2025–2030 on
+its 5-year cycle), so always use a current value — any future model-backed
+lookup must state its model and epoch.
+
 ## How it works (spherical default)
 
 The default Qibla direction is calculated using spherical trigonometry:

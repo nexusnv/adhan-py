@@ -143,3 +143,62 @@ def test_qibla_ellipsoidal_stays_within_documented_bound_of_spherical():
 def test_qibla_unknown_method_rejected():
     with pytest.raises(ConfigurationError, match="(?i)method"):
         Qibla((35.7750, -78.6336), method="bogus")
+
+
+def test_qibla_magnetic_east_declination_subtracts():
+    # NOAA sign convention: east positive ("east is least").
+    qibla = Qibla((51.5074, -0.1278))  # London, true 118.987
+    assert qibla.magnetic_direction(3.0) == pytest.approx(115.987, abs=1e-2)
+
+
+def test_qibla_magnetic_west_declination_adds():
+    # West is passed negative; Raleigh true 55.825, synthetic -8.0
+    # (west-negative convention check, not a Raleigh model lookup).
+    qibla = Qibla((35.7750, -78.6336))
+    assert qibla.magnetic_direction(-8.0) == pytest.approx(63.825, abs=1e-2)
+
+
+def test_qibla_magnetic_zero_declination_is_identity():
+    qibla = Qibla((35.7750, -78.6336))
+    assert qibla.magnetic_direction(0.0) == pytest.approx(qibla.direction, abs=1e-9)
+
+
+def test_qibla_magnetic_wraps_into_range():
+    qibla = Qibla((51.5074, -0.1278))  # true 118.987
+    assert qibla.magnetic_direction(120.0) == pytest.approx(358.987, abs=1e-2)
+    assert qibla.magnetic_direction(-240.0) == pytest.approx(358.987, abs=1e-2)
+
+
+def test_qibla_magnetic_follows_ellipsoidal_direction():
+    qibla = Qibla((35.7750, -78.6336), method="ellipsoidal")
+    assert qibla.magnetic_direction(-8.0) == pytest.approx(63.739246718, abs=1e-6)
+
+
+def test_qibla_magnetic_accepts_int_and_decimal():
+    from decimal import Decimal
+    from fractions import Fraction
+
+    qibla = Qibla((35.7750, -78.6336))  # true 55.825
+    assert qibla.magnetic_direction(8) == pytest.approx(47.825, abs=1e-2)
+    assert qibla.magnetic_direction(Decimal("12.5")) == pytest.approx(43.325, abs=1e-2)
+    assert qibla.magnetic_direction(Fraction(1, 2)) == pytest.approx(55.325, abs=1e-2)
+
+
+def test_qibla_magnetic_huge_finite_stays_in_range():
+    # unwind_angle's floor form cancels catastrophically past ~1e290;
+    # the fmod reduction must keep every finite input in [0, 360).
+    qibla = Qibla((35.7750, -78.6336))
+    for declination in (9.99e305, -9.99e305, 1.5e308, -1.5e308, 7.77e307):
+        result = qibla.magnetic_direction(declination)
+        assert 0 <= result < 360
+        assert not math.isnan(result)
+
+
+@pytest.mark.parametrize(
+    "declination",
+    [None, "10", True, False, float("nan"), float("inf"), -float("inf"), 10**1000],
+    ids=["none", "string", "bool", "false-bool", "nan", "inf", "neg-inf", "huge-int"],
+)
+def test_qibla_magnetic_rejects_bad_declination(declination):
+    with pytest.raises(ValidationError, match="(?i)declination|finite|real"):
+        Qibla((35.7750, -78.6336)).magnetic_direction(declination)

@@ -1,4 +1,7 @@
 import math
+import numbers
+from decimal import Decimal
+
 from alfalak.astronomy.Geodesy import geodesic_inverse
 from alfalak.data.Constants import EARTH_MEAN_RADIUS_KM, MAKKAH
 from alfalak.data.Coordinates import Coordinates
@@ -102,3 +105,44 @@ class Qibla:
 
         self.direction: float = direction
         self.distance_to_makkah_km: float = distance_km
+
+    def magnetic_direction(self, declination_deg: numbers.Real | Decimal) -> float:
+        """Compass heading toward Makkah for a magnetic compass.
+
+        ``direction`` is always true-north (that is the default); pass your
+        local magnetic declination to get the needle heading instead:
+
+        ``magnetic = unwind(true - declination_east)`` ("east is least").
+
+        Sign convention (NOAA NCEI): declination is positive east of true
+        north, negative west. So 10 deg E subtracts 10 deg, while 8 deg W
+        (pass -8) adds 8 deg. Any finite value is accepted; the result is
+        unwound to [0, 360).
+
+        The declination itself is NOT computed here — look it up from a
+        phone compass, chart, or magnetic model. A future model-backed
+        provider will live behind this hook and must take (model, epoch):
+        the field drifts (secular variation; e.g. WMM2025, valid 2025–2030
+        on a 5-year cycle), so a timeless cached declination goes stale.
+        """
+        if isinstance(declination_deg, bool) or not isinstance(
+            declination_deg, (numbers.Real, Decimal)
+        ):
+            raise ValidationError(
+                "Declination must be a real number of degrees east, "
+                f"got {declination_deg!r}."
+            )
+        try:
+            declination = float(declination_deg)
+        except (OverflowError, ValueError) as e:
+            raise ValidationError(
+                "Declination must be finite, " f"got {declination_deg!r}."
+            ) from e
+        if not math.isfinite(declination):
+            raise ValidationError(
+                "Declination must be finite, " f"got {declination_deg!r}."
+            )
+        # Reduce modulo 360 first: unwind_angle's floor-based remainder loses
+        # all precision for huge finite inputs (catastrophic cancellation),
+        # while math.fmod is exactly rounded. Identity for |d| < 360.
+        return unwind_angle(self.direction - math.fmod(declination, 360.0))
