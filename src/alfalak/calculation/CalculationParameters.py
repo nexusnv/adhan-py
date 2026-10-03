@@ -1,4 +1,5 @@
 import copy
+import math
 from typing import Optional
 from alfalak.calculation.CalculationMethod import CalculationMethod
 from alfalak.calculation.MethodsParameters import METHODS_PARAMETERS
@@ -23,6 +24,7 @@ class CalculationParameters:
         imsak_offset: int = 10,
         ishraq_offset: int = 15,
         dhuha_offset: int = 28,
+        elevation_m: float = 0.0,
     ) -> None:
         # The madhab used to calculate Asr
         self.madhab = Madhab.SHAFI
@@ -41,6 +43,10 @@ class CalculationParameters:
         # published tables are mostly but not always exactly Fajr-10, so
         # this stays configurable rather than hardcoded)
         self.imsak_offset = imsak_offset
+
+        # Observer eye height in metres for dip-of-horizon correction
+        # (h0 = −0.833° − 0.0293°·√h_m). Default 0 = sea level, unchanged.
+        self.elevation_m = elevation_m
 
         # Minutes after sunrise for Ishraq (15 per Ibn Uthaymin) and for the
         # start of the Dhuha window (28 per a single Malaysian Syuruk+28
@@ -105,6 +111,16 @@ class CalculationParameters:
         if self.dhuha_offset < 0:
             raise ValidationError(
                 f"Dhuha offset must be non-negative, got {self.dhuha_offset}."
+            )
+        if (
+            isinstance(self.elevation_m, bool)
+            or not isinstance(self.elevation_m, (int, float))
+            or not math.isfinite(self.elevation_m)
+            or self.elevation_m < 0
+        ):
+            raise ValidationError(
+                "Elevation must be a finite non-negative number of metres, "
+                f"got {self.elevation_m!r}."
             )
 
     def night_portions(self) -> NightPortions:

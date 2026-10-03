@@ -23,12 +23,14 @@ from alfalak.util.CalendarUtil import rounded_minute
 
 
 def _schedule_defined(
-    date_components: DateComponents, coordinates: Coordinates
+    date_components: DateComponents,
+    coordinates: Coordinates,
+    elevation_m: float = 0.0,
 ) -> bool:
     # Exactly what PrayerTimes.__init__ needs: today's sunrise/sunset plus
     # tomorrow's sunrise (for the night length). Both days are probed
     # because validity can differ across midnight at the razor edge.
-    today = SolarTime(date_components, coordinates)
+    today = SolarTime(date_components, coordinates, elevation_m)
     if math.isnan(today.sunrise) or math.isnan(today.sunset):
         return False
     base = datetime(
@@ -37,12 +39,19 @@ def _schedule_defined(
         date_components.day,
         tzinfo=timezone.utc,
     )
-    tomorrow = SolarTime(DateComponents.from_utc(base + timedelta(days=1)), coordinates)
+    tomorrow = SolarTime(
+        DateComponents.from_utc(base + timedelta(days=1)),
+        coordinates,
+        elevation_m,
+    )
     return not math.isnan(tomorrow.sunrise)
 
 
 def _nearest_latitude_with_sunrise_sunset(
-    latitude: float, longitude: float, date_components: DateComponents
+    latitude: float,
+    longitude: float,
+    date_components: DateComponents,
+    elevation_m: float = 0.0,
 ) -> float:
     # Rise/set existence is monotonic in |latitude| for a fixed date, so
     # bisect between the (invalid) requested latitude and the equator,
@@ -51,7 +60,9 @@ def _nearest_latitude_with_sunrise_sunset(
     invalid, valid = abs(latitude), 0.0
     for _ in range(60):
         mid = (invalid + valid) / 2
-        if _schedule_defined(date_components, Coordinates(sign * mid, longitude)):
+        if _schedule_defined(
+            date_components, Coordinates(sign * mid, longitude), elevation_m
+        ):
             valid = mid
         else:
             invalid = mid
@@ -63,7 +74,10 @@ def _nearest_latitude_with_sunrise_sunset(
 
 
 def _nearest_date_with_sunrise_sunset(
-    latitude: float, longitude: float, date_components: DateComponents
+    latitude: float,
+    longitude: float,
+    date_components: DateComponents,
+    elevation_m: float = 0.0,
 ) -> DateComponents:
     coordinates = Coordinates(latitude, longitude)
     base = datetime(
@@ -75,7 +89,7 @@ def _nearest_date_with_sunrise_sunset(
     for offset in range(1, 367):
         for delta in (-offset, offset):
             candidate = DateComponents.from_utc(base + timedelta(days=delta))
-            if _schedule_defined(candidate, coordinates):
+            if _schedule_defined(candidate, coordinates, elevation_m):
                 return candidate
     raise AstronomicalError(  # pragma: no cover - every location has rise/set days
         "No date with sunrise/sunset found within a year. "
@@ -154,7 +168,11 @@ class PrayerTimes:
         tomorrow_date = self._prayer_date + timedelta(days=1)
         tomorrow_date_components = DateComponents.from_utc(tomorrow_date)
 
-        self._solar_time = SolarTime(self._date_components, self.coordinates)
+        self._solar_time = SolarTime(
+            self._date_components,
+            self.coordinates,
+            self.calculation_parameters.elevation_m,
+        )
 
         time_components = TimeComponents.from_float(self._solar_time.transit)
         transit = (
@@ -177,7 +195,11 @@ class PrayerTimes:
             else time_components.date_components(self._date_components)
         )
 
-        tomorrow_solar_time = SolarTime(tomorrow_date_components, self.coordinates)
+        tomorrow_solar_time = SolarTime(
+            tomorrow_date_components,
+            self.coordinates,
+            self.calculation_parameters.elevation_m,
+        )
         tomorrow_sunrise_components = TimeComponents.from_float(
             tomorrow_solar_time.sunrise
         )
@@ -234,7 +256,8 @@ class PrayerTimes:
         the configured PolarCircleRule. No-op for normal days.
         """
         rule = self.calculation_parameters.polar_circle_rule
-        if _schedule_defined(self._date_components, self.coordinates):
+        elevation_m = self.calculation_parameters.elevation_m
+        if _schedule_defined(self._date_components, self.coordinates, elevation_m):
             return
 
         if rule == PolarCircleRule.NONE:
@@ -245,6 +268,7 @@ class PrayerTimes:
                     self.coordinates.latitude,
                     self.coordinates.longitude,
                     self._date_components,
+                    elevation_m,
                 ),
                 self.coordinates.longitude,
             )
@@ -253,6 +277,7 @@ class PrayerTimes:
                 self.coordinates.latitude,
                 self.coordinates.longitude,
                 self._date_components,
+                elevation_m,
             )
         elif rule == PolarCircleRule.MAKKAH:
             self.coordinates = Coordinates(MAKKAH.latitude, MAKKAH.longitude)

@@ -12,7 +12,12 @@ from alfalak.util.DateComponents import DateComponents
 
 
 class SolarTime:
-    def __init__(self, date_components: DateComponents, coordinates: Coordinates):
+    def __init__(
+        self,
+        date_components: DateComponents,
+        coordinates: Coordinates,
+        elevation_m: float = 0.0,
+    ):
         julian_date = julian_day(
             date_components.year, date_components.month, date_components.day
         )
@@ -26,7 +31,10 @@ class SolarTime:
             self.solar.apparent_sidereal_time,
             self.solar.right_ascension,
         )
-        solar_altitude = -50.0 / 60.0
+        # Dip of the horizon for eye height h (Nautical Almanac/Bowditch:
+        # dip = 0.0293°·√h_m, h in metres). Default 0 preserves sea-level
+        # behavior (h0 = −0.833° = 34′ refraction + 16′ semi-diameter).
+        solar_altitude = -50.0 / 60.0 - 0.0293 * math.sqrt(elevation_m)
 
         self.observer = coordinates
         self.transit = corrected_transit(

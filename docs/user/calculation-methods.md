@@ -61,6 +61,15 @@ Sunrise adjustments flow through to all three markers; `adjustments.ishraq`
 and `adjustments.dhuha` apply on top. Ordering for defaults:
 `fajr < sunrise <= syuruk <= ishraq <= dhuha <= dhuhr`.
 
+## Observer elevation
+
+`CalculationParameters(elevation_m=...)` (default 0 = sea level) applies the
+dip-of-horizon correction to sunrise, sunset and Maghrib:
+`h0 = -0.833° - 0.0293°·√h_m` (h in metres, Nautical Almanac/Bowditch; valid
+for eye heights of ~0 to tens of metres). Angle-based Fajr/Isha and
+transit-based Dhuhr are unaffected. At 1000 m sunrise is minutes earlier and
+sunset minutes later; sea-level goldens are unchanged.
+
 ## Provenance notes
 
 - Dubai: the 18.2°/18.2° angles plus `sunrise -3, dhuhr +3, asr +3, maghrib +3`

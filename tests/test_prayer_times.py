@@ -415,6 +415,7 @@ def test_twilight_preset_definitions_locked():
         assert params.imsak_offset == 10
         assert params.ishraq_offset == 15
         assert params.dhuha_offset == 28
+        assert params.elevation_m == 0.0
 
 
 def test_milestone_twilight_rows_pinned():
@@ -858,3 +859,54 @@ def test_negative_ishraq_dhuha_offsets_raise():
         CalculationParameters(method=CalculationMethod.NORTH_AMERICA, ishraq_offset=-1)
     with pytest.raises(ValidationError, match="(?i)dhuha"):
         CalculationParameters(method=CalculationMethod.NORTH_AMERICA, dhuha_offset=-1)
+
+
+def test_elevation_default_zero_preserves_goldens():
+    # Slice 2.6: default elevation_m=0 keeps every sea-level golden.
+    params = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    assert params.elevation_m == 0.0
+
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=params,
+    )
+    assert prayer_times.sunrise.strftime("%H:%M:%S") == "10:08:00"
+    assert prayer_times.maghrib.strftime("%H:%M:%S") == "00:32:00"
+
+
+def test_elevation_shifts_sunrise_sunset_only():
+    # 1000 m of eye height lowers the visible horizon (dip ≈ 0.93°):
+    # sunrise earlier, sunset/maghrib later by minutes; transit-based
+    # dhuhr and angle-based fajr/isha are unaffected.
+    base = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    pt_base = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=base,
+    )
+
+    high = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, elevation_m=1000.0
+    )
+    pt_high = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=high,
+    )
+
+    sunrise_shift = (pt_high.sunrise - pt_base.sunrise).total_seconds() / 60
+    sunset_shift = (pt_high.maghrib - pt_base.maghrib).total_seconds() / 60
+    assert 1 <= -sunrise_shift <= 8
+    assert 1 <= sunset_shift <= 8
+    assert pt_high.dhuhr == pt_base.dhuhr
+    assert pt_high.fajr == pt_base.fajr
+    assert pt_high.isha == pt_base.isha
+
+
+def test_invalid_elevation_raises():
+    for bad in (-1.0, float("nan"), float("inf"), True, "100"):
+        with pytest.raises(ValidationError, match="(?i)elevation"):
+            CalculationParameters(
+                method=CalculationMethod.NORTH_AMERICA, elevation_m=bad
+            )
