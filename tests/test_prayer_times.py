@@ -1,8 +1,9 @@
 import math
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 from alfalak.data.Coordinates import Coordinates
+from alfalak.data.Prayer import Prayer
 from alfalak.util.DateComponents import DateComponents
 from alfalak.calculation.CalculationMethod import CalculationMethod
 from alfalak.calculation.CalculationParameters import CalculationParameters
@@ -12,7 +13,11 @@ from alfalak.calculation.Madhab import Madhab
 from alfalak.calculation.PolarCircleRule import PolarCircleRule
 from alfalak.PrayerTimes import PrayerTimes
 from alfalak.calculation.PrayerAdjustments import PrayerAdjustments
-from alfalak.exceptions import AstronomicalError, ConfigurationError
+from alfalak.exceptions import (
+    AstronomicalError,
+    ConfigurationError,
+    ValidationError,
+)
 from zoneinfo import ZoneInfo
 
 
@@ -404,6 +409,8 @@ def test_twilight_preset_definitions_locked():
             method_adjustments.maghrib,
             method_adjustments.isha,
         ) == adjustments
+        assert method_adjustments.imsak == 0
+        assert params.imsak_offset == 10
 
 
 def test_milestone_twilight_rows_pinned():
@@ -675,3 +682,84 @@ def test_jakim_malaysian_zone_goldens(
     assert prayer_times.asr.strftime("%H:%M:%S") == asr
     assert prayer_times.maghrib.strftime("%H:%M:%S") == maghrib
     assert prayer_times.isha.strftime("%H:%M:%S") == isha
+
+
+def test_imsak_defaults_to_fajr_minus_ten():
+    # Slice 2.3: Imsak = Fajr - imsak_offset (default 10). Raleigh golden:
+    # fajr 08:42 UTC -> imsak 08:32 UTC.
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NORTH_AMERICA,
+    )
+
+    assert prayer_times.imsak.strftime("%H:%M:%S") == "08:32:00"
+    assert prayer_times.time_for_prayer(Prayer.IMSAK) == prayer_times.imsak
+    assert prayer_times.imsak < prayer_times.fajr
+
+
+def test_imsak_custom_offset_and_none_method():
+    params = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, imsak_offset=15
+    )
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=params,
+    )
+    assert prayer_times.imsak.strftime("%H:%M:%S") == "08:27:00"
+
+    params_zero = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, imsak_offset=0
+    )
+    prayer_times_zero = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=params_zero,
+    )
+    assert prayer_times_zero.imsak == prayer_times_zero.fajr
+
+    # NONE is angle-less but Imsak stays defined as Fajr - offset.
+    prayer_times_none = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NONE,
+    )
+    assert prayer_times_none.imsak.strftime("%H:%M:%S") == "10:03:00"
+
+
+def test_imsak_follows_fajr_adjustments():
+    # Imsak tracks rounded Fajr: fajr adjustments flow through, imsak
+    # adjustments apply on top. Integer offsets commute with half-up
+    # minute rounding, so pre/post-rounding order is equivalent.
+    base = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    pt_base = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=base,
+    )
+
+    shifted = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    shifted.adjustments.fajr = 10
+    pt_shifted = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=shifted,
+    )
+    assert pt_shifted.fajr - pt_base.fajr == timedelta(minutes=10)
+    assert pt_shifted.imsak - pt_base.imsak == timedelta(minutes=10)
+
+    tweak = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    tweak.adjustments.imsak = 2
+    pt_tweak = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=tweak,
+    )
+    assert pt_tweak.imsak - pt_base.imsak == timedelta(minutes=2)
+    assert pt_tweak.fajr == pt_base.fajr
+
+
+def test_negative_imsak_offset_raises():
+    with pytest.raises(ValidationError, match="(?i)imsak"):
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA, imsak_offset=-1)

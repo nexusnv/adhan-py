@@ -20,6 +20,7 @@ class CalculationParameters:
         fajr_angle: float = 0.0,
         isha_angle: float = 0.0,
         polar_circle_rule: PolarCircleRule = PolarCircleRule.NEAREST_LATITUDE,
+        imsak_offset: int = 10,
     ) -> None:
         # The madhab used to calculate Asr
         self.madhab = Madhab.SHAFI
@@ -33,6 +34,11 @@ class CalculationParameters:
         # fajr and isha angles
         self.fajr_angle = fajr_angle
         self.isha_angle = isha_angle
+
+        # Minutes before Fajr for Imsak (JAKIM convention defaults to 10;
+        # published tables are mostly but not always exactly Fajr-10, so
+        # this stays configurable rather than hardcoded)
+        self.imsak_offset = imsak_offset
 
         # Estimation strategy when the sun never rises/sets (polar day/night)
         if not isinstance(polar_circle_rule, PolarCircleRule):
@@ -79,6 +85,10 @@ class CalculationParameters:
         if self.isha_interval < 0:
             raise ValidationError(
                 f"Isha interval must be non-negative, got {self.isha_interval}."
+            )
+        if self.imsak_offset < 0:
+            raise ValidationError(
+                f"Imsak offset must be non-negative, got {self.imsak_offset}."
             )
 
     def night_portions(self) -> NightPortions:

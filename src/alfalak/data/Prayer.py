@@ -5,6 +5,8 @@ class Prayer(Enum):
 
     NONE = 0
 
+    IMSAK = 7
+
     FAJR = 1
 
     SUNRISE = 2

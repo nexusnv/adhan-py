@@ -11,9 +11,11 @@ from alfalak import PrayerTimes
 
 def is_ordered(prayer_times: PrayerTimes) -> bool:
     """Monotonic invariant: only Dhuhr/Asr may coincide (documented
-    saturation); every other adjacent pair is strictly increasing."""
+    saturation); every other adjacent pair is strictly increasing.
+    Imsak precedes Fajr by imsak_offset (equal only when offset is 0)."""
     return (
-        prayer_times.fajr
+        prayer_times.imsak
+        <= prayer_times.fajr
         < prayer_times.sunrise
         < prayer_times.dhuhr
         <= prayer_times.asr

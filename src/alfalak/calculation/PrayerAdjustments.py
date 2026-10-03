@@ -1,5 +1,8 @@
 class PrayerAdjustments:
 
+    imsak: int
+    # Imsak offset in minutes
+
     fajr: int
     # Fajr offset in minutes
 
@@ -26,6 +29,7 @@ class PrayerAdjustments:
         asr: int = 0,
         maghrib: int = 0,
         isha: int = 0,
+        imsak: int = 0,
     ):
         """
         Gets a PrayerAdjustments object to offset prayer times (defaulting to 0)
@@ -35,6 +39,7 @@ class PrayerAdjustments:
         param asr offset from asr in minutes
         param maghrib offset from maghrib in minutes
         param isha offset from isha in minutes
+        param imsak offset from imsak in minutes
         """
         self.fajr = fajr
         self.sunrise = sunrise
@@ -42,3 +47,4 @@ class PrayerAdjustments:
         self.asr = asr
         self.maghrib = maghrib
         self.isha = isha
+        self.imsak = imsak

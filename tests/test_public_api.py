@@ -88,6 +88,7 @@ def test_time_for_prayer_matches_attributes():
         ),
     )
 
+    assert prayer_times.time_for_prayer(Prayer.IMSAK) == prayer_times.imsak
     assert prayer_times.time_for_prayer(Prayer.FAJR) == prayer_times.fajr
     assert prayer_times.time_for_prayer(Prayer.SUNRISE) == prayer_times.sunrise
     assert prayer_times.time_for_prayer(Prayer.DHUHR) == prayer_times.dhuhr

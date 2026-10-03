@@ -86,6 +86,7 @@ def _nearest_date_with_sunrise_sunset(
 
 
 class PrayerTimes:
+    imsak: datetime
     fajr: datetime
     sunrise: datetime
     dhuhr: datetime
@@ -108,7 +109,7 @@ class PrayerTimes:
             calculation_parameters: CalculationParameters
             time_zone: example ZoneInfo("Europe/London")
         Returns:
-            PrayerTimes object with UTC datetimes for fajr, sunrise, dhuhr, asr, maghrib and isha
+            PrayerTimes object with UTC datetimes for imsak, fajr, sunrise, dhuhr, asr, maghrib and isha
         """
 
         if (calculation_parameters is None) == (calculation_method is None):
@@ -208,6 +209,7 @@ class PrayerTimes:
 
         # Assign final times to properties with all offsets
         self._set_fajr()
+        self._set_imsak()
         self._set_sunrise()
         self._set_dhuhr(transit)
         self._set_asr()
@@ -289,6 +291,18 @@ class PrayerTimes:
             self.calculation_parameters.method_adjustments,
             "fajr",
             temp_fajr,
+        )
+
+    def _set_imsak(self) -> None:
+        # Imsak tracks the rounded Fajr (fajr adjustments flow through),
+        # minus the configurable offset. Integer-minute offsets commute with
+        # half-up minute rounding, so pre/post-rounding order is equivalent;
+        # imsak-specific adjustments apply on top via _rounded_minute.
+        self.imsak = self._rounded_minute(
+            self.calculation_parameters.adjustments,
+            self.calculation_parameters.method_adjustments,
+            "imsak",
+            self.fajr - timedelta(minutes=self.calculation_parameters.imsak_offset),
         )
 
     def _set_sunrise(self) -> None:
@@ -423,7 +437,9 @@ class PrayerTimes:
 
     def time_for_prayer(self, prayer: Prayer) -> datetime:
         """Return the computed time for a Prayer enum member."""
-        if prayer == Prayer.FAJR:
+        if prayer == Prayer.IMSAK:
+            return self.imsak
+        elif prayer == Prayer.FAJR:
             return self.fajr
         elif prayer == Prayer.SUNRISE:
             return self.sunrise
@@ -439,6 +455,7 @@ class PrayerTimes:
 
     def _adjust_prayers_time_zone(self) -> None:
         if self.time_zone is not None:
+            self.imsak = self.imsak.astimezone(self.time_zone)
             self.fajr = self.fajr.astimezone(self.time_zone)
             self.sunrise = self.sunrise.astimezone(self.time_zone)
             self.dhuhr = self.dhuhr.astimezone(self.time_zone)

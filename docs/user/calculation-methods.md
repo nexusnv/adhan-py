@@ -37,6 +37,16 @@ baseline in `tests/test_prayer_times.py`, with `JAKIM == SINGAPORE` asserted
 to the second. Official e-solat tables may add minute-level administrative
 adjustments on top of this baseline.
 
+## Imsak
+
+`Imsak = Fajr - imsak_offset` (default 10 minutes, configurable via
+`CalculationParameters(imsak_offset=...)`). The JAKIM convention defaults to
+10, but published Malaysian tables are mostly — not always — exactly Fajr-10,
+so the offset stays configurable rather than hardcoded. The offset applies to
+the rounded Fajr (equivalent to pre-rounding for integer-minute offsets);
+`adjustments.imsak` applies on top, and Fajr adjustments flow through to
+Imsak. Defined for all methods including `NONE`.
+
 ## Provenance notes
 
 - Dubai: the 18.2°/18.2° angles plus `sunrise -3, dhuhr +3, asr +3, maghrib +3`
