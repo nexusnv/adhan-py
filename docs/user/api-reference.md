@@ -94,12 +94,24 @@ WGS84); anything else raises `ConfigurationError`.
 SunnahTimes(prayer_times: PrayerTimes)
 ```
 
+The night is Maghrib to next-day Fajr (offsets included). Duration math
+runs in UTC, rounds to the minute half-up, then converts to the display
+zone.
+
 **Attributes:**
 
 | Attribute | Type | Description |
 |---|---|---|
+| `first_third_of_the_night` | `datetime` | Maghrib + 1/3 of the night |
 | `middle_of_the_night` | `datetime` | Midpoint between Maghrib and Fajr |
 | `last_third_of_the_night` | `datetime` | Start of last third of the night |
+| `tahajjud_window` | `tuple[datetime, datetime]` | `(last_third_of_the_night, next-day Fajr)` |
+
+**Methods:**
+
+| Method | Returns | Description |
+|---|---|---|
+| `night_fraction(fraction, start=None, end=None)` | `datetime` | Maghrib + `fraction` of the night (`0 < fraction < 1`, else `ValidationError`); pass aware `start`/`end` datetimes for Isha-anchored or sunset-anchored variants, `end` must be after `start` |
 
 ## CalculationParameters
 
