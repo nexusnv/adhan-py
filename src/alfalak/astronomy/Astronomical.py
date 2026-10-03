@@ -1,4 +1,5 @@
 from alfalak.data.Coordinates import Coordinates
+from alfalak.astronomy.CalendricalHelper import julian_century
 from alfalak.util.FloatUtil import closest_angle, unwind_angle, normalize_with_bound
 import math
 
@@ -143,6 +144,46 @@ def interpolate_angles(y2: float, y1: float, y3: float, n: float) -> float:
     b = unwind_angle(y3 - y2)
     c = b - a
     return y2 + ((n / 2) * (a + b + (n * c)))
+
+
+def solar_declination(julian_day: float) -> float:
+    """Solar declination in degrees (Meeus Ch.25, p.165).
+
+    Thin wrapper over the same internals as
+    ``SolarCoordinates`` (no algorithm change): ``asin(sin εapp · sin λ)``.
+    """
+    T = julian_century(julian_day)
+    L0 = mean_solar_longitude(T)
+    λ = math.radians(apparent_solar_longitude(T, L0))
+    ε0 = mean_obliquity_of_the_ecliptic(T)
+    εapp = math.radians(apparent_obliquity_of_the_ecliptic(T, ε0))
+    return math.degrees(math.asin(math.sin(εapp) * math.sin(λ)))
+
+
+def equation_of_time(julian_day: float) -> float:
+    """Equation of time in minutes of time (Meeus Ch.28, p.183).
+
+    ``E = L0 − 0.0057183° − α + Δψ·cos ε`` (degrees, wrapped to
+    (−180, 180]) converted with 1° = 4 minutes. ``α`` is the same apparent
+    right ascension ``SolarCoordinates`` computes; ``ε`` is the true
+    obliquity ``ε0 + Δε``. Thin wrapper over existing internals: solar
+    transit times computed via the Ch.15 interpolation path are unchanged.
+    """
+    T = julian_century(julian_day)
+    L0 = mean_solar_longitude(T)
+    Lp = mean_lunar_longitude(T)
+    Ω = ascending_lunar_node_longitude(T)
+    λ = math.radians(apparent_solar_longitude(T, L0))
+    ε0 = mean_obliquity_of_the_ecliptic(T)
+    ΔΨ = nutation_in_longitude(L0, Lp, Ω)
+    Δε = nutation_in_obliquity(L0, Lp, Ω)
+    ε = ε0 + Δε
+    εapp = math.radians(apparent_obliquity_of_the_ecliptic(T, ε0))
+    α = unwind_angle(
+        math.degrees(math.atan2(math.cos(εapp) * math.sin(λ), math.cos(λ)))
+    )
+    E = L0 - 0.0057183 - α + ΔΨ * math.cos(math.radians(ε))
+    return closest_angle(E) * 4.0
 
 
 def corrected_hour_angle(

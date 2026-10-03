@@ -26,8 +26,8 @@ class CalculationMethod(Enum):
     UMM_AL_QURA = 4
     """
     Umm al-Qura University, Makkah
-    Uses a Fajr angle of 18.5 and an Isha angle of 90. Note: You should add a +30 minute custom
-    adjustment of Isha during Ramadan.
+    Uses a Fajr angle of 18.5 and an Isha interval of 90 minutes
+    (120 minutes in Ramadan via CalculationParameters(is_ramadan=True)).
     """
 
     DUBAI = 5
@@ -71,4 +71,13 @@ class CalculationMethod(Enum):
     """
     UOIF
     Uses a Fajr angle of 12 and an Isha angle of 12
+    """
+
+    JAKIM = 12
+    """
+    Jabatan Kemajuan Islam Malaysia (JAKIM)
+    Uses a Fajr angle of 20 and an Isha angle of 18, identical angles to
+    SINGAPORE by design. Not a different twilight computation: the separate
+    preset exists for presentation/operations (Malay naming, Malaysian zone
+    metadata, e-solat timetable alignment).
     """

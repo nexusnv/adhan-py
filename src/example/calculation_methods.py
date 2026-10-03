@@ -20,6 +20,7 @@ def main() -> None:
         CalculationMethod.QATAR,
         CalculationMethod.SINGAPORE,
         CalculationMethod.UOIF,
+        CalculationMethod.JAKIM,
     ]
 
     print(f"Calculation methods comparison for {today.strftime('%Y-%m-%d')}")

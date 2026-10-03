@@ -3,7 +3,11 @@ from decimal import Decimal
 from alfalak import PrayerTimes, Qibla
 from alfalak.calculation import CalculationMethod, CalculationParameters
 from alfalak.data.Coordinates import Coordinates
-from alfalak.exceptions import AlFalakError, ValidationError
+from alfalak.exceptions import (
+    AlFalakError,
+    ConfigurationError,
+    ValidationError,
+)
 from alfalak.util.DateComponents import DateComponents
 
 
@@ -67,6 +71,41 @@ def test_boundary_parameters_accepted(kwargs):
 def test_non_numeric_coordinates_rejected(latitude, longitude):
     with pytest.raises(ValidationError, match="(?i)real number|latitude|longitude"):
         Coordinates(latitude, longitude)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"imsak_offset": -1},
+        {"ishraq_offset": -1},
+        {"dhuha_offset": -1},
+        {"imsak_offset": True},
+        {"ishraq_offset": True},
+        {"dhuha_offset": True},
+        {"imsak_offset": "10"},
+        {"ishraq_offset": "15"},
+        {"dhuha_offset": "28"},
+        {"imsak_offset": 2.5},
+        {"ishraq_offset": 15.0},
+        {"isha_interval": True},
+        {"isha_interval": "90"},
+        {"isha_interval": 90.0},
+    ],
+)
+def test_out_of_range_minute_offsets_rejected(kwargs):
+    with pytest.raises(ValidationError, match="(?i)offset|interval"):
+        CalculationParameters(**kwargs)
+
+
+def test_inverted_ishraq_dhuha_offsets_rejected():
+    with pytest.raises(ValidationError, match="(?i)dhuha|ishraq"):
+        CalculationParameters(ishraq_offset=30, dhuha_offset=5)
+
+
+@pytest.mark.parametrize("is_ramadan", ["yes", 1, 0, None, "true"])
+def test_non_bool_is_ramadan_rejected(is_ramadan):
+    with pytest.raises(ConfigurationError, match="(?i)is_ramadan"):
+        CalculationParameters(is_ramadan=is_ramadan)
 
 
 @pytest.mark.parametrize(

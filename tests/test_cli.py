@@ -23,14 +23,22 @@ def test_cli_prints_iso_times(capsys):
         line.split("=", 1) for line in capsys.readouterr().out.strip().splitlines()
     )
     assert set(lines) == {
+        "imsak",
         "fajr",
         "sunrise",
+        "syuruk",
+        "ishraq",
+        "dhuha",
         "dhuhr",
         "asr",
         "maghrib",
         "isha",
     }
     assert lines["fajr"] == "2015-07-12T08:42:00+00:00"
+    assert lines["imsak"] == "2015-07-12T08:32:00+00:00"
+    assert lines["syuruk"] == lines["sunrise"]
+    assert lines["ishraq"] == "2015-07-12T10:23:00+00:00"
+    assert lines["dhuha"] == "2015-07-12T10:36:00+00:00"
 
 
 def test_cli_defaults_to_today(capsys):

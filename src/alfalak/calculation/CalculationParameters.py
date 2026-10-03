@@ -1,4 +1,5 @@
 import copy
+import math
 from typing import Optional
 from alfalak.calculation.CalculationMethod import CalculationMethod
 from alfalak.calculation.MethodsParameters import METHODS_PARAMETERS
@@ -20,6 +21,11 @@ class CalculationParameters:
         fajr_angle: float = 0.0,
         isha_angle: float = 0.0,
         polar_circle_rule: PolarCircleRule = PolarCircleRule.NEAREST_LATITUDE,
+        imsak_offset: int = 10,
+        ishraq_offset: int = 15,
+        dhuha_offset: int = 28,
+        elevation_m: float = 0.0,
+        is_ramadan: bool = False,
     ) -> None:
         # The madhab used to calculate Asr
         self.madhab = Madhab.SHAFI
@@ -33,6 +39,31 @@ class CalculationParameters:
         # fajr and isha angles
         self.fajr_angle = fajr_angle
         self.isha_angle = isha_angle
+
+        # Minutes before Fajr for Imsak (JAKIM convention defaults to 10;
+        # published tables are mostly but not always exactly Fajr-10, so
+        # this stays configurable rather than hardcoded)
+        self.imsak_offset = imsak_offset
+
+        # Observer eye height in metres for dip-of-horizon correction
+        # (h0 = −0.833° − 0.0293°·√h_m). Default 0 = sea level, unchanged.
+        self.elevation_m = elevation_m
+
+        # Minutes after sunrise for Ishraq (15 per Ibn Uthaymin) and for the
+        # start of the Dhuha window (28 per a single Malaysian Syuruk+28
+        # source, not universal fiqh — configurable, see docs)
+        self.ishraq_offset = ishraq_offset
+        self.dhuha_offset = dhuha_offset
+
+        # Umm al-Qura Ramadan mode: Isha is 120 minutes after Maghrib in
+        # Ramadan vs 90 otherwise (total, not an additive +30). Opt-in flag;
+        # applies to the UMM_AL_QURA preset only. Must be a real bool so
+        # truthy non-bool values cannot silently enable Ramadan mode.
+        if not isinstance(is_ramadan, bool):
+            raise ConfigurationError(
+                "is_ramadan must be a bool, " f"got {type(is_ramadan).__name__}."
+            )
+        self.is_ramadan = is_ramadan
 
         # Estimation strategy when the sun never rises/sets (polar day/night)
         if not isinstance(polar_circle_rule, PolarCircleRule):
@@ -76,9 +107,57 @@ class CalculationParameters:
             raise ValidationError(
                 f"Isha angle must be within [0, 90], got {self.isha_angle}."
             )
-        if self.isha_interval < 0:
+        if (
+            isinstance(self.isha_interval, bool)
+            or not isinstance(self.isha_interval, int)
+            or self.isha_interval < 0
+        ):
             raise ValidationError(
-                f"Isha interval must be non-negative, got {self.isha_interval}."
+                "Isha interval must be a non-negative integer number of "
+                f"minutes, got {self.isha_interval!r}."
+            )
+        if (
+            isinstance(self.imsak_offset, bool)
+            or not isinstance(self.imsak_offset, int)
+            or self.imsak_offset < 0
+        ):
+            raise ValidationError(
+                "Imsak offset must be a non-negative integer number of "
+                f"minutes, got {self.imsak_offset!r}."
+            )
+        if (
+            isinstance(self.ishraq_offset, bool)
+            or not isinstance(self.ishraq_offset, int)
+            or self.ishraq_offset < 0
+        ):
+            raise ValidationError(
+                "Ishraq offset must be a non-negative integer number of "
+                f"minutes, got {self.ishraq_offset!r}."
+            )
+        if (
+            isinstance(self.dhuha_offset, bool)
+            or not isinstance(self.dhuha_offset, int)
+            or self.dhuha_offset < 0
+        ):
+            raise ValidationError(
+                "Dhuha offset must be a non-negative integer number of "
+                f"minutes, got {self.dhuha_offset!r}."
+            )
+        if self.dhuha_offset < self.ishraq_offset:
+            raise ValidationError(
+                "Dhuha offset must be >= Ishraq offset to preserve "
+                f"sunrise <= ishraq <= dhuha, got ishraq_offset="
+                f"{self.ishraq_offset!r}, dhuha_offset={self.dhuha_offset!r}."
+            )
+        if (
+            isinstance(self.elevation_m, bool)
+            or not isinstance(self.elevation_m, (int, float))
+            or not math.isfinite(self.elevation_m)
+            or self.elevation_m < 0
+        ):
+            raise ValidationError(
+                "Elevation must be a finite non-negative number of metres, "
+                f"got {self.elevation_m!r}."
             )
 
     def night_portions(self) -> NightPortions:

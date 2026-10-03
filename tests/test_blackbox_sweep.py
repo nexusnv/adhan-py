@@ -94,8 +94,9 @@ def test_golden_north_america_hanafi_second_precision():
     # BB-PT-GOLDEN-NA-01. Source: test_prayer_times_second_precision_locked.
     params = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
     params.madhab = Madhab.HANAFI
-    pt = PrayerTimes(RALEIGH, DateComponents(2015, 7, 12),
-                     calculation_parameters=params)
+    pt = PrayerTimes(
+        RALEIGH, DateComponents(2015, 7, 12), calculation_parameters=params
+    )
     assert pt.fajr.strftime("%H:%M:%S") == "08:42:00"
     assert pt.sunrise.strftime("%H:%M:%S") == "10:08:00"
     assert pt.dhuhr.strftime("%H:%M:%S") == "17:21:00"
@@ -340,14 +341,17 @@ def test_timezone_conversion_london_winter_summer():
     coords = (51.49799827422162, -0.1358135027951458)
     method = CalculationMethod.MOON_SIGHTING_COMMITTEE
     fmt = "%I:%M %p"
-    winter = PrayerTimes(coords, DateComponents(2022, 1, 1),
-                         calculation_method=method, time_zone=tz)
+    winter = PrayerTimes(
+        coords, DateComponents(2022, 1, 1), calculation_method=method, time_zone=tz
+    )
     assert winter.fajr.strftime(fmt) == "06:25 AM"
-    summer_utc = PrayerTimes(coords, DateComponents(2022, 8, 1),
-                             calculation_method=method)
+    summer_utc = PrayerTimes(
+        coords, DateComponents(2022, 8, 1), calculation_method=method
+    )
     assert summer_utc.fajr.strftime(fmt) == "02:37 AM"
-    summer_local = PrayerTimes(coords, DateComponents(2022, 8, 1),
-                               calculation_method=method, time_zone=tz)
+    summer_local = PrayerTimes(
+        coords, DateComponents(2022, 8, 1), calculation_method=method, time_zone=tz
+    )
     assert summer_local.fajr.strftime(fmt) == "03:37 AM"
 
 
@@ -367,8 +371,12 @@ def test_time_for_prayer_matches_attributes():
         ),
     )
     for prayer, name in [
+        (Prayer.IMSAK, "imsak"),
         (Prayer.FAJR, "fajr"),
         (Prayer.SUNRISE, "sunrise"),
+        (Prayer.SYURUK, "syuruk"),
+        (Prayer.ISHRAQ, "ishraq"),
+        (Prayer.DHUHA, "dhuha"),
         (Prayer.DHUHR, "dhuhr"),
         (Prayer.ASR, "asr"),
         (Prayer.MAGHRIB, "maghrib"),
@@ -379,8 +387,9 @@ def test_time_for_prayer_matches_attributes():
 
 def test_time_for_prayer_rejects_none():
     # BB-PT-TIMEFOR-02. Source: test_time_for_prayer_rejects_none.
-    pt = PrayerTimes(RALEIGH, DateComponents(2015, 7, 12),
-                     CalculationMethod.NORTH_AMERICA)
+    pt = PrayerTimes(
+        RALEIGH, DateComponents(2015, 7, 12), CalculationMethod.NORTH_AMERICA
+    )
     with pytest.raises(ConfigurationError, match="(?i)prayer"):
         pt.time_for_prayer(Prayer.NONE)
 
@@ -413,8 +422,7 @@ def test_invalid_madhab_raises_configuration_error():
     params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
     params.madhab = None
     with pytest.raises(ConfigurationError, match="(?i)madhab"):
-        PrayerTimes(RALEIGH, DateComponents(2015, 7, 12),
-                    calculation_parameters=params)
+        PrayerTimes(RALEIGH, DateComponents(2015, 7, 12), calculation_parameters=params)
 
 
 def test_invalid_high_latitude_rule_raises():
@@ -422,8 +430,7 @@ def test_invalid_high_latitude_rule_raises():
     params = CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE)
     params.high_latitude_rule = "bogus"
     with pytest.raises(ConfigurationError, match="(?i)high latitude"):
-        PrayerTimes(RALEIGH, DateComponents(2015, 7, 12),
-                    calculation_parameters=params)
+        PrayerTimes(RALEIGH, DateComponents(2015, 7, 12), calculation_parameters=params)
 
 
 def test_invalid_polar_rule_raises():
@@ -448,8 +455,9 @@ def test_invalid_polar_rule_raises():
 def test_out_of_range_coordinates_rejected(coords):
     # BB-PT-VAL-01. Source: test_out_of_range_tuple_rejected_by_prayer_times.
     with pytest.raises(ValidationError, match="(?i)latitude|longitude"):
-        PrayerTimes(coords, DateComponents(2015, 7, 12),
-                    CalculationMethod.MUSLIM_WORLD_LEAGUE)
+        PrayerTimes(
+            coords, DateComponents(2015, 7, 12), CalculationMethod.MUSLIM_WORLD_LEAGUE
+        )
 
 
 @pytest.mark.parametrize(
@@ -469,7 +477,8 @@ def test_non_numeric_coordinates_raise_alfalak_error():
     # Label: suspicious current behavior (minimized reproducer; see report).
     with pytest.raises(AlFalakError, match="(?i)real number"):
         PrayerTimes(
-            ("a", "b"), DateComponents(2015, 7, 12),
+            ("a", "b"),
+            DateComponents(2015, 7, 12),
             CalculationMethod.MUSLIM_WORLD_LEAGUE,
         )
 
@@ -482,11 +491,15 @@ def test_non_numeric_coordinates_raise_alfalak_error():
 
 def test_coordinates_object_equivalent_to_tuple():
     # BB-PT-INPUT-01. Source: test_prayer_times_accepts_coordinates_object.
-    params = lambda: CalculationParameters(method=CalculationMethod.NORTH_AMERICA)  # noqa: E731
-    from_tuple = PrayerTimes(RALEIGH, DateComponents(2015, 7, 12),
-                             calculation_parameters=params())
+    params = lambda: CalculationParameters(  # noqa: E731
+        method=CalculationMethod.NORTH_AMERICA
+    )  # noqa: E731
+    from_tuple = PrayerTimes(
+        RALEIGH, DateComponents(2015, 7, 12), calculation_parameters=params()
+    )
     from_object = PrayerTimes(
-        Coordinates(*RALEIGH), DateComponents(2015, 7, 12),
+        Coordinates(*RALEIGH),
+        DateComponents(2015, 7, 12),
         calculation_parameters=params(),
     )
     assert from_object.fajr == from_tuple.fajr
@@ -495,7 +508,9 @@ def test_coordinates_object_equivalent_to_tuple():
 
 def test_datetime_equivalent_to_date_components():
     # BB-PT-INPUT-02. Source: test_prayer_times_accepts_datetime_and_date_components.
-    params = lambda: CalculationParameters(method=CalculationMethod.NORTH_AMERICA)  # noqa: E731
+    params = lambda: CalculationParameters(  # noqa: E731
+        method=CalculationMethod.NORTH_AMERICA
+    )  # noqa: E731
     from_datetime = PrayerTimes(
         RALEIGH,
         datetime(2015, 7, 12, tzinfo=timezone.utc),
@@ -545,7 +560,8 @@ def test_qibla_at_makkah_self_characterization():
 
 
 @pytest.mark.parametrize(
-    "coords", [(0, 0), (90, 0), (-90, 0), (0, 180)],
+    "coords",
+    [(0, 0), (90, 0), (-90, 0), (0, 180)],
     ids=["equator-prime", "north-pole", "south-pole", "antimeridian"],
 )
 def test_qibla_cardinal_points_in_range(coords):
@@ -616,16 +632,31 @@ def test_cli_happy_path_prints_iso_times(capsys):
     # BB-CLI-01. Source: test_cli_prints_iso_times.
     main(
         [
-            "--latitude", "35.7750",
-            "--longitude", "-78.6336",
-            "--date", "2015-07-12",
-            "--method", "NORTH_AMERICA",
+            "--latitude",
+            "35.7750",
+            "--longitude",
+            "-78.6336",
+            "--date",
+            "2015-07-12",
+            "--method",
+            "NORTH_AMERICA",
         ]
     )
     lines = dict(
         line.split("=", 1) for line in capsys.readouterr().out.strip().splitlines()
     )
-    assert set(lines) == {"fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha"}
+    assert set(lines) == {
+        "imsak",
+        "fajr",
+        "sunrise",
+        "syuruk",
+        "ishraq",
+        "dhuha",
+        "dhuhr",
+        "asr",
+        "maghrib",
+        "isha",
+    }
     assert lines["fajr"] == "2015-07-12T08:42:00+00:00"
     for value in lines.values():  # every line parses as an aware ISO datetime
         assert datetime.fromisoformat(value).tzinfo is not None
@@ -668,8 +699,17 @@ def test_cli_domain_error_characterization():
     # usage contract covers domain errors, so only the nonzero exit and the
     # error type on stderr are pinned, not the exact status/message.
     result = subprocess.run(
-        [sys.executable, "-m", "alfalak", "--latitude", "91",
-         "--longitude", "0", "--date", "2015-07-12"],
+        [
+            sys.executable,
+            "-m",
+            "alfalak",
+            "--latitude",
+            "91",
+            "--longitude",
+            "0",
+            "--date",
+            "2015-07-12",
+        ],
         capture_output=True,
         text=True,
         timeout=60,

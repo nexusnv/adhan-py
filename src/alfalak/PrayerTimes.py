@@ -23,12 +23,14 @@ from alfalak.util.CalendarUtil import rounded_minute
 
 
 def _schedule_defined(
-    date_components: DateComponents, coordinates: Coordinates
+    date_components: DateComponents,
+    coordinates: Coordinates,
+    elevation_m: float = 0.0,
 ) -> bool:
     # Exactly what PrayerTimes.__init__ needs: today's sunrise/sunset plus
     # tomorrow's sunrise (for the night length). Both days are probed
     # because validity can differ across midnight at the razor edge.
-    today = SolarTime(date_components, coordinates)
+    today = SolarTime(date_components, coordinates, elevation_m)
     if math.isnan(today.sunrise) or math.isnan(today.sunset):
         return False
     base = datetime(
@@ -37,12 +39,19 @@ def _schedule_defined(
         date_components.day,
         tzinfo=timezone.utc,
     )
-    tomorrow = SolarTime(DateComponents.from_utc(base + timedelta(days=1)), coordinates)
+    tomorrow = SolarTime(
+        DateComponents.from_utc(base + timedelta(days=1)),
+        coordinates,
+        elevation_m,
+    )
     return not math.isnan(tomorrow.sunrise)
 
 
 def _nearest_latitude_with_sunrise_sunset(
-    latitude: float, longitude: float, date_components: DateComponents
+    latitude: float,
+    longitude: float,
+    date_components: DateComponents,
+    elevation_m: float = 0.0,
 ) -> float:
     # Rise/set existence is monotonic in |latitude| for a fixed date, so
     # bisect between the (invalid) requested latitude and the equator,
@@ -51,7 +60,9 @@ def _nearest_latitude_with_sunrise_sunset(
     invalid, valid = abs(latitude), 0.0
     for _ in range(60):
         mid = (invalid + valid) / 2
-        if _schedule_defined(date_components, Coordinates(sign * mid, longitude)):
+        if _schedule_defined(
+            date_components, Coordinates(sign * mid, longitude), elevation_m
+        ):
             valid = mid
         else:
             invalid = mid
@@ -63,7 +74,10 @@ def _nearest_latitude_with_sunrise_sunset(
 
 
 def _nearest_date_with_sunrise_sunset(
-    latitude: float, longitude: float, date_components: DateComponents
+    latitude: float,
+    longitude: float,
+    date_components: DateComponents,
+    elevation_m: float = 0.0,
 ) -> DateComponents:
     coordinates = Coordinates(latitude, longitude)
     base = datetime(
@@ -75,7 +89,7 @@ def _nearest_date_with_sunrise_sunset(
     for offset in range(1, 367):
         for delta in (-offset, offset):
             candidate = DateComponents.from_utc(base + timedelta(days=delta))
-            if _schedule_defined(candidate, coordinates):
+            if _schedule_defined(candidate, coordinates, elevation_m):
                 return candidate
     raise AstronomicalError(  # pragma: no cover - every location has rise/set days
         "No date with sunrise/sunset found within a year. "
@@ -86,8 +100,12 @@ def _nearest_date_with_sunrise_sunset(
 
 
 class PrayerTimes:
+    imsak: datetime
     fajr: datetime
     sunrise: datetime
+    syuruk: datetime
+    ishraq: datetime
+    dhuha: datetime
     dhuhr: datetime
     asr: datetime
     maghrib: datetime
@@ -108,7 +126,8 @@ class PrayerTimes:
             calculation_parameters: CalculationParameters
             time_zone: example ZoneInfo("Europe/London")
         Returns:
-            PrayerTimes object with UTC datetimes for fajr, sunrise, dhuhr, asr, maghrib and isha
+            PrayerTimes object with UTC datetimes for imsak, fajr, sunrise,
+            syuruk, ishraq, dhuha, dhuhr, asr, maghrib and isha
         """
 
         if (calculation_parameters is None) == (calculation_method is None):
@@ -149,7 +168,11 @@ class PrayerTimes:
         tomorrow_date = self._prayer_date + timedelta(days=1)
         tomorrow_date_components = DateComponents.from_utc(tomorrow_date)
 
-        self._solar_time = SolarTime(self._date_components, self.coordinates)
+        self._solar_time = SolarTime(
+            self._date_components,
+            self.coordinates,
+            self.calculation_parameters.elevation_m,
+        )
 
         time_components = TimeComponents.from_float(self._solar_time.transit)
         transit = (
@@ -172,7 +195,11 @@ class PrayerTimes:
             else time_components.date_components(self._date_components)
         )
 
-        tomorrow_solar_time = SolarTime(tomorrow_date_components, self.coordinates)
+        tomorrow_solar_time = SolarTime(
+            tomorrow_date_components,
+            self.coordinates,
+            self.calculation_parameters.elevation_m,
+        )
         tomorrow_sunrise_components = TimeComponents.from_float(
             tomorrow_solar_time.sunrise
         )
@@ -208,7 +235,9 @@ class PrayerTimes:
 
         # Assign final times to properties with all offsets
         self._set_fajr()
+        self._set_imsak()
         self._set_sunrise()
+        self._set_syuruk_ishraq_dhuha()
         self._set_dhuhr(transit)
         self._set_asr()
         self._set_maghrib()
@@ -227,7 +256,8 @@ class PrayerTimes:
         the configured PolarCircleRule. No-op for normal days.
         """
         rule = self.calculation_parameters.polar_circle_rule
-        if _schedule_defined(self._date_components, self.coordinates):
+        elevation_m = self.calculation_parameters.elevation_m
+        if _schedule_defined(self._date_components, self.coordinates, elevation_m):
             return
 
         if rule == PolarCircleRule.NONE:
@@ -238,6 +268,7 @@ class PrayerTimes:
                     self.coordinates.latitude,
                     self.coordinates.longitude,
                     self._date_components,
+                    elevation_m,
                 ),
                 self.coordinates.longitude,
             )
@@ -246,6 +277,7 @@ class PrayerTimes:
                 self.coordinates.latitude,
                 self.coordinates.longitude,
                 self._date_components,
+                elevation_m,
             )
         elif rule == PolarCircleRule.MAKKAH:
             self.coordinates = Coordinates(MAKKAH.latitude, MAKKAH.longitude)
@@ -291,12 +323,43 @@ class PrayerTimes:
             temp_fajr,
         )
 
+    def _set_imsak(self) -> None:
+        # Imsak tracks the rounded Fajr (fajr adjustments flow through),
+        # minus the configurable offset. Integer-minute offsets commute with
+        # half-up minute rounding, so pre/post-rounding order is equivalent;
+        # imsak-specific adjustments apply on top via _rounded_minute.
+        self.imsak = self._rounded_minute(
+            self.calculation_parameters.adjustments,
+            self.calculation_parameters.method_adjustments,
+            "imsak",
+            self.fajr - timedelta(minutes=self.calculation_parameters.imsak_offset),
+        )
+
     def _set_sunrise(self) -> None:
         self.sunrise = self._rounded_minute(
             self.calculation_parameters.adjustments,
             self.calculation_parameters.method_adjustments,
             "sunrise",
             self._sunrise_components,
+        )
+
+    def _set_syuruk_ishraq_dhuha(self) -> None:
+        # Pure derivations from the adjusted sunrise: no new astronomy.
+        # Syuruk is sunrise under its MY/SG name. Ishraq defaults to
+        # sunrise+15; Dhuha is the start of the Dhuha window
+        # (sunrise+28 per a single Malaysian source, not universal fiqh).
+        self.syuruk = self.sunrise
+        self.ishraq = self._rounded_minute(
+            self.calculation_parameters.adjustments,
+            self.calculation_parameters.method_adjustments,
+            "ishraq",
+            self.sunrise + timedelta(minutes=self.calculation_parameters.ishraq_offset),
+        )
+        self.dhuha = self._rounded_minute(
+            self.calculation_parameters.adjustments,
+            self.calculation_parameters.method_adjustments,
+            "dhuha",
+            self.sunrise + timedelta(minutes=self.calculation_parameters.dhuha_offset),
         )
 
     def _set_dhuhr(self, time: datetime) -> None:
@@ -352,15 +415,21 @@ class PrayerTimes:
         # Isha calculation with check against safe value
         temp_isha = None
         try:
+            # Umm al-Qura Ramadan mode: 120 minutes total after Maghrib
+            # instead of 90 (not an additive +30). Other methods unaffected.
+            isha_interval = self.calculation_parameters.isha_interval
+            if (
+                self.calculation_parameters.is_ramadan
+                and self.calculation_parameters.method == CalculationMethod.UMM_AL_QURA
+            ):
+                isha_interval = 120
             # NOTE: stays ValueError on purpose - the except (ValueError,
             # TypeError) below depends on this exact type to switch to
             # angle-based Isha. Not part of the public error tree.
-            if self.calculation_parameters.isha_interval < 1:
+            if isha_interval < 1:
                 raise ValueError("Isha interval is either not defined or less than 1.")
 
-            temp_isha = sunset + timedelta(
-                seconds=self.calculation_parameters.isha_interval * 60
-            )
+            temp_isha = sunset + timedelta(seconds=isha_interval * 60)
         except (ValueError, TypeError):
             timeComponents = TimeComponents.from_float(
                 self._solar_time.hour_angle(
@@ -423,10 +492,18 @@ class PrayerTimes:
 
     def time_for_prayer(self, prayer: Prayer) -> datetime:
         """Return the computed time for a Prayer enum member."""
-        if prayer == Prayer.FAJR:
+        if prayer == Prayer.IMSAK:
+            return self.imsak
+        elif prayer == Prayer.FAJR:
             return self.fajr
         elif prayer == Prayer.SUNRISE:
             return self.sunrise
+        elif prayer == Prayer.SYURUK:
+            return self.syuruk
+        elif prayer == Prayer.ISHRAQ:
+            return self.ishraq
+        elif prayer == Prayer.DHUHA:
+            return self.dhuha
         elif prayer == Prayer.DHUHR:
             return self.dhuhr
         elif prayer == Prayer.ASR:
@@ -439,8 +516,12 @@ class PrayerTimes:
 
     def _adjust_prayers_time_zone(self) -> None:
         if self.time_zone is not None:
+            self.imsak = self.imsak.astimezone(self.time_zone)
             self.fajr = self.fajr.astimezone(self.time_zone)
             self.sunrise = self.sunrise.astimezone(self.time_zone)
+            self.syuruk = self.syuruk.astimezone(self.time_zone)
+            self.ishraq = self.ishraq.astimezone(self.time_zone)
+            self.dhuha = self.dhuha.astimezone(self.time_zone)
             self.dhuhr = self.dhuhr.astimezone(self.time_zone)
             self.asr = self.asr.astimezone(self.time_zone)
             self.maghrib = self.maghrib.astimezone(self.time_zone)

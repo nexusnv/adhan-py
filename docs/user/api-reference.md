@@ -45,8 +45,12 @@ Exactly one of `calculation_method` or `calculation_parameters` must be provided
 
 | Attribute | Type | Description |
 |---|---|---|
+| `imsak` | `datetime` | Imsak time (Fajr − `imsak_offset`, default 10 min) |
 | `fajr` | `datetime` | Fajr time |
 | `sunrise` | `datetime` | Sunrise time |
+| `syuruk` | `datetime` | Syuruk time (== sunrise, MY/SG name) |
+| `ishraq` | `datetime` | Ishraq time (sunrise + `ishraq_offset`, default 15 min) |
+| `dhuha` | `datetime` | Start of Dhuha window (sunrise + `dhuha_offset`, default 28 min) |
 | `dhuhr` | `datetime` | Dhuhr time |
 | `asr` | `datetime` | Asr time |
 | `maghrib` | `datetime` | Maghrib time |
@@ -108,8 +112,20 @@ CalculationParameters(
     fajr_angle: float = 0.0,
     isha_angle: float = 0.0,
     polar_circle_rule: PolarCircleRule = PolarCircleRule.NEAREST_LATITUDE,
+    imsak_offset: int = 10,
+    ishraq_offset: int = 15,
+    dhuha_offset: int = 28,
+    elevation_m: float = 0.0,
+    is_ramadan: bool = False,
 )
 ```
+
+Minute-count offsets/intervals must be non-negative integers (`bool`
+rejected); `elevation_m` must be a finite non-negative number of metres;
+`is_ramadan` must be a `bool` (applies to `UMM_AL_QURA` only, 120 min total
+in Ramadan vs 90 otherwise); `dhuha_offset` must be `>= ishraq_offset`.
+Violations raise `ValidationError` (`is_ramadan` type raises
+`ConfigurationError`).
 
 **Attributes (settable):**
 
@@ -121,6 +137,11 @@ CalculationParameters(
 | `fajr_angle` | `float` | From method | Fajr angle in degrees |
 | `isha_angle` | `float` | From method | Isha angle in degrees |
 | `isha_interval` | `int` | From method | Isha interval in minutes |
+| `imsak_offset` | `int` | `10` | Minutes before Fajr for Imsak |
+| `ishraq_offset` | `int` | `15` | Minutes after sunrise for Ishraq |
+| `dhuha_offset` | `int` | `28` | Minutes after sunrise for start of Dhuha window (`>= ishraq_offset`) |
+| `elevation_m` | `float` | `0.0` | Observer eye height in metres for dip-of-horizon correction |
+| `is_ramadan` | `bool` | `False` | Umm al-Qura Ramadan mode (120 min Isha total; preset only) |
 | `method` | `CalculationMethod` | `NONE` | Calculation method |
 | `adjustments` | `PrayerAdjustments` | — | Per-prayer minute offsets |
 | `method_adjustments` | `PrayerAdjustments` | — | Method-specific offsets |
@@ -129,7 +150,7 @@ CalculationParameters(
 
 ### CalculationMethod
 
-`NONE`, `MUSLIM_WORLD_LEAGUE`, `EGYPTIAN`, `KARACHI`, `UMM_AL_QURA`, `DUBAI`, `MOON_SIGHTING_COMMITTEE`, `NORTH_AMERICA`, `KUWAIT`, `QATAR`, `SINGAPORE`, `UOIF`
+`NONE`, `MUSLIM_WORLD_LEAGUE`, `EGYPTIAN`, `KARACHI`, `UMM_AL_QURA`, `DUBAI`, `MOON_SIGHTING_COMMITTEE`, `NORTH_AMERICA`, `KUWAIT`, `QATAR`, `SINGAPORE`, `UOIF`, `JAKIM`
 
 ### HighLatitudeRule
 
@@ -145,7 +166,7 @@ CalculationParameters(
 
 ### Prayer
 
-`NONE`, `FAJR`, `SUNRISE`, `DHUHR`, `ASR`, `MAGHRIB`, `ISHA`
+`NONE`, `IMSAK`, `FAJR`, `SUNRISE`, `SYURUK`, `ISHRAQ`, `DHUHA`, `DHUHR`, `ASR`, `MAGHRIB`, `ISHA` (listed in chronological definition order, which is canonical — numeric values are frozen for backward compatibility, so do not sort by `.value`)
 
 ## Data types
 
@@ -167,8 +188,14 @@ PrayerAdjustments(
     asr: int = 0,
     maghrib: int = 0,
     isha: int = 0,
+    imsak: int = 0,
+    ishraq: int = 0,
+    dhuha: int = 0,
 )
 ```
+
+No separate `syuruk` slot by design: Syuruk aliases sunrise, so `sunrise`
+adjustments flow through to it.
 
 ## Exceptions
 

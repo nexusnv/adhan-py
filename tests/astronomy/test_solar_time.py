@@ -1,5 +1,7 @@
 from datetime import datetime, timezone, timedelta
+import pytest
 from alfalak.data.Coordinates import Coordinates
+from alfalak.exceptions import ValidationError
 from alfalak.util.DateComponents import DateComponents
 from alfalak.util.TimeComponents import TimeComponents
 from alfalak.astronomy.SolarTime import SolarTime
@@ -65,6 +67,29 @@ def _make_date_with_offset(year: int, month: int, day: int, offset: int):
 
     date_time_offset = date_time + timedelta(days=offset)
     return DateComponents.from_utc(date_time_offset)
+
+
+@pytest.mark.parametrize(
+    "elevation_m",
+    [-1.0, -0.5, float("nan"), float("inf"), True, "100", None],
+)
+def test_invalid_elevation_rejected_by_solar_time(elevation_m):
+    # Direct SolarTime construction must honor the same contract as
+    # CalculationParameters: ValidationError, never a bare ValueError from
+    # math.sqrt or NaN altitude propagating downstream.
+    with pytest.raises(ValidationError, match="(?i)elevation"):
+        SolarTime(
+            DateComponents(2015, 7, 12),
+            Coordinates(35.7750, -78.6336),
+            elevation_m,
+        )
+
+
+def test_zero_elevation_accepted_by_solar_time():
+    solar = SolarTime(
+        DateComponents(2015, 7, 12), Coordinates(35.7750, -78.6336), 0.0
+    )
+    assert solar.sunrise == pytest.approx(10.133, abs=0.01)
 
 
 def _time_string(when: float):

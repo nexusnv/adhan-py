@@ -62,3 +62,11 @@ except AstronomicalError as e:
 - Estimates are approximations: near the polar boundary, adjacent markers can invert by minutes
 - The `NEAREST_LATITUDE` strategy backs off 0.5° from the exact boundary to ensure a usable day/night split
 - All strategies preserve the original date in the returned datetimes (except `NEAREST_DAY` which uses the nearest valid date)
+
+## Interaction with high-latitude caps
+
+Polar resolution runs before the `HighLatitudeRule` night-fraction caps: the
+fallback coordinates/date get a normal schedule first, then Fajr/Isha are
+clamped as usual. Observer `elevation_m` is threaded into the polar
+rise/set probes too, so an elevated observer keeps the same horizon for
+fallback detection and for the final times.

@@ -1,8 +1,9 @@
 import math
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 from alfalak.data.Coordinates import Coordinates
+from alfalak.data.Prayer import Prayer
 from alfalak.util.DateComponents import DateComponents
 from alfalak.calculation.CalculationMethod import CalculationMethod
 from alfalak.calculation.CalculationParameters import CalculationParameters
@@ -12,7 +13,11 @@ from alfalak.calculation.Madhab import Madhab
 from alfalak.calculation.PolarCircleRule import PolarCircleRule
 from alfalak.PrayerTimes import PrayerTimes
 from alfalak.calculation.PrayerAdjustments import PrayerAdjustments
-from alfalak.exceptions import AstronomicalError, ConfigurationError
+from alfalak.exceptions import (
+    AstronomicalError,
+    ConfigurationError,
+    ValidationError,
+)
 from zoneinfo import ZoneInfo
 
 
@@ -356,3 +361,597 @@ def test_prayer_times_timezone_conversion():
         coordinates, date_summer, calculation_method=calculation_method, time_zone=tz
     )
     assert prayer_times.fajr.strftime(format) == "03:37 AM"
+
+
+def test_twilight_preset_definitions_locked():
+    # Slice 2.1: any change to METHODS_PARAMETERS must fail loudly here.
+    # (fajr_angle, isha_angle, isha_interval, fajr, sunrise, dhuhr, asr,
+    # maghrib, isha method_adjustments).
+    expected = {
+        CalculationMethod.NONE: (0.0, 0.0, 0, (0, 0, 0, 0, 0, 0)),
+        CalculationMethod.MUSLIM_WORLD_LEAGUE: (18.0, 17.0, 0, (0, 0, 1, 0, 0, 0)),
+        CalculationMethod.EGYPTIAN: (19.5, 17.5, 0, (0, 0, 1, 0, 0, 0)),
+        CalculationMethod.KARACHI: (18.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
+        CalculationMethod.UMM_AL_QURA: (18.5, 0.0, 90, (0, 0, 0, 0, 0, 0)),
+        CalculationMethod.DUBAI: (18.2, 18.2, 0, (0, -3, 3, 3, 3, 0)),
+        CalculationMethod.MOON_SIGHTING_COMMITTEE: (
+            18.0,
+            18.0,
+            0,
+            (0, 0, 5, 0, 3, 0),
+        ),
+        CalculationMethod.NORTH_AMERICA: (15.0, 15.0, 0, (0, 0, 1, 0, 0, 0)),
+        CalculationMethod.KUWAIT: (18.0, 17.5, 0, (0, 0, 0, 0, 0, 0)),
+        CalculationMethod.QATAR: (18.0, 0.0, 90, (0, 0, 0, 0, 0, 0)),
+        CalculationMethod.SINGAPORE: (20.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
+        CalculationMethod.UOIF: (12.0, 12.0, 0, (0, 0, 0, 0, 0, 0)),
+        CalculationMethod.JAKIM: (20.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
+    }
+
+    assert set(expected) == set(CalculationMethod)
+
+    for method, (
+        fajr_angle,
+        isha_angle,
+        isha_interval,
+        adjustments,
+    ) in expected.items():
+        params = CalculationParameters(method=method)
+        assert params.fajr_angle == fajr_angle
+        assert params.isha_angle == isha_angle
+        assert params.isha_interval == isha_interval
+        method_adjustments = params.method_adjustments
+        assert (
+            method_adjustments.fajr,
+            method_adjustments.sunrise,
+            method_adjustments.dhuhr,
+            method_adjustments.asr,
+            method_adjustments.maghrib,
+            method_adjustments.isha,
+        ) == adjustments
+        assert method_adjustments.imsak == 0
+        assert method_adjustments.ishraq == 0
+        assert method_adjustments.dhuha == 0
+        assert params.imsak_offset == 10
+        assert params.ishraq_offset == 15
+        assert params.dhuha_offset == 28
+        assert params.elevation_m == 0.0
+
+
+def test_milestone_twilight_rows_pinned():
+    # Milestone Phase 2 rows mapped to presets: MWL 18/17, Egypt 19.5/17.5,
+    # ISNA 15/15 via NORTH_AMERICA, JAKIM/MUIS 20/18 via SINGAPORE and JAKIM.
+    assert (
+        CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE).fajr_angle
+        == 18.0
+    )
+    assert (
+        CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE).isha_angle
+        == 17.0
+    )
+    assert CalculationParameters(method=CalculationMethod.EGYPTIAN).fajr_angle == 19.5
+    assert CalculationParameters(method=CalculationMethod.EGYPTIAN).isha_angle == 17.5
+    assert (
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA).fajr_angle == 15.0
+    )
+    assert (
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA).isha_angle == 15.0
+    )
+    assert CalculationParameters(method=CalculationMethod.SINGAPORE).fajr_angle == 20.0
+    assert CalculationParameters(method=CalculationMethod.SINGAPORE).isha_angle == 18.0
+    assert CalculationParameters(method=CalculationMethod.JAKIM).fajr_angle == 20.0
+    assert CalculationParameters(method=CalculationMethod.JAKIM).isha_angle == 18.0
+
+
+@pytest.mark.parametrize(
+    "method, fajr, sunrise, dhuhr, asr, maghrib, isha",
+    [
+        (
+            CalculationMethod.NONE,
+            "10:13:00",
+            "10:08:00",
+            "17:20:00",
+            "21:09:00",
+            "00:32:00",
+            "00:28:00",
+        ),
+        (
+            CalculationMethod.MUSLIM_WORLD_LEAGUE,
+            "08:22:00",
+            "10:08:00",
+            "17:21:00",
+            "21:09:00",
+            "00:32:00",
+            "02:11:00",
+        ),
+        (
+            CalculationMethod.EGYPTIAN,
+            "08:11:00",
+            "10:08:00",
+            "17:21:00",
+            "21:09:00",
+            "00:32:00",
+            "02:14:00",
+        ),
+        (
+            CalculationMethod.KARACHI,
+            "08:22:00",
+            "10:08:00",
+            "17:21:00",
+            "21:09:00",
+            "00:32:00",
+            "02:18:00",
+        ),
+        (
+            CalculationMethod.UMM_AL_QURA,
+            "08:18:00",
+            "10:08:00",
+            "17:20:00",
+            "21:09:00",
+            "00:32:00",
+            "02:02:00",
+        ),
+        (
+            CalculationMethod.DUBAI,
+            "08:20:00",
+            "10:05:00",
+            "17:23:00",
+            "21:12:00",
+            "00:35:00",
+            "02:19:00",
+        ),
+        (
+            CalculationMethod.MOON_SIGHTING_COMMITTEE,
+            "08:26:00",
+            "10:08:00",
+            "17:25:00",
+            "21:09:00",
+            "00:35:00",
+            "01:47:00",
+        ),
+        (
+            CalculationMethod.NORTH_AMERICA,
+            "08:42:00",
+            "10:08:00",
+            "17:21:00",
+            "21:09:00",
+            "00:32:00",
+            "01:57:00",
+        ),
+        (
+            CalculationMethod.KUWAIT,
+            "08:22:00",
+            "10:08:00",
+            "17:20:00",
+            "21:09:00",
+            "00:32:00",
+            "02:14:00",
+        ),
+        (
+            CalculationMethod.QATAR,
+            "08:22:00",
+            "10:08:00",
+            "17:20:00",
+            "21:09:00",
+            "00:32:00",
+            "02:02:00",
+        ),
+        (
+            CalculationMethod.SINGAPORE,
+            "08:07:00",
+            "10:08:00",
+            "17:21:00",
+            "21:09:00",
+            "00:32:00",
+            "02:18:00",
+        ),
+        (
+            CalculationMethod.UOIF,
+            "09:02:00",
+            "10:08:00",
+            "17:20:00",
+            "21:09:00",
+            "00:32:00",
+            "01:38:00",
+        ),
+        (
+            CalculationMethod.JAKIM,
+            "08:07:00",
+            "10:08:00",
+            "17:21:00",
+            "21:09:00",
+            "00:32:00",
+            "02:18:00",
+        ),
+    ],
+)
+def test_twilight_preset_goldens_raleigh(
+    method, fajr, sunrise, dhuhr, asr, maghrib, isha
+):
+    # One golden day per method: Raleigh (35.7750, -78.6336), 2015-07-12, UTC.
+    # Angle-vs-interval mode is asserted below for UMM_AL_QURA/QATAR.
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=method,
+    )
+
+    assert prayer_times.fajr.strftime("%H:%M:%S") == fajr
+    assert prayer_times.sunrise.strftime("%H:%M:%S") == sunrise
+    assert prayer_times.dhuhr.strftime("%H:%M:%S") == dhuhr
+    assert prayer_times.asr.strftime("%H:%M:%S") == asr
+    assert prayer_times.maghrib.strftime("%H:%M:%S") == maghrib
+    assert prayer_times.isha.strftime("%H:%M:%S") == isha
+
+    if method in (CalculationMethod.UMM_AL_QURA, CalculationMethod.QATAR):
+        assert (prayer_times.isha - prayer_times.maghrib).total_seconds() / 60 == 90
+    elif method is not CalculationMethod.NONE:
+        assert (
+            prayer_times.fajr
+            <= prayer_times.sunrise
+            <= prayer_times.dhuhr
+            <= prayer_times.asr
+            <= prayer_times.maghrib
+            <= prayer_times.isha
+        )
+
+
+def test_jakim_matches_singapore_by_design():
+    # Slice 2.2: JAKIM uses identical 20/18 angles plus dhuhr=1, so computed
+    # times must equal SINGAPORE exactly. Not a different computation.
+    jakim = CalculationParameters(method=CalculationMethod.JAKIM)
+    singapore = CalculationParameters(method=CalculationMethod.SINGAPORE)
+
+    assert (jakim.fajr_angle, jakim.isha_angle, jakim.isha_interval) == (
+        singapore.fajr_angle,
+        singapore.isha_angle,
+        singapore.isha_interval,
+    )
+    assert (
+        jakim.method_adjustments.fajr,
+        jakim.method_adjustments.sunrise,
+        jakim.method_adjustments.dhuhr,
+        jakim.method_adjustments.asr,
+        jakim.method_adjustments.maghrib,
+        jakim.method_adjustments.isha,
+    ) == (
+        singapore.method_adjustments.fajr,
+        singapore.method_adjustments.sunrise,
+        singapore.method_adjustments.dhuhr,
+        singapore.method_adjustments.asr,
+        singapore.method_adjustments.maghrib,
+        singapore.method_adjustments.isha,
+    )
+
+    for coordinates, date in [
+        ((35.7750, -78.6336), DateComponents(2015, 7, 12)),
+        ((3.1390, 101.6869), DateComponents(2015, 7, 12)),
+        ((5.9804, 116.0735), DateComponents(2015, 7, 12)),
+        ((3.1390, 101.6869), DateComponents(2025, 1, 15)),
+        ((5.9804, 116.0735), DateComponents(2025, 1, 15)),
+    ]:
+        jakim_times = PrayerTimes(
+            coordinates, date, calculation_method=CalculationMethod.JAKIM
+        )
+        singapore_times = PrayerTimes(
+            coordinates, date, calculation_method=CalculationMethod.SINGAPORE
+        )
+
+        assert jakim_times.fajr == singapore_times.fajr
+        assert jakim_times.sunrise == singapore_times.sunrise
+        assert jakim_times.dhuhr == singapore_times.dhuhr
+        assert jakim_times.asr == singapore_times.asr
+        assert jakim_times.maghrib == singapore_times.maghrib
+        assert jakim_times.isha == singapore_times.isha
+
+
+@pytest.mark.parametrize(
+    "coordinates, date, fajr, sunrise, dhuhr, asr, maghrib, isha",
+    [
+        (
+            (3.1390, 101.6869),
+            DateComponents(2025, 1, 15),
+            "22:02:00",
+            "23:24:00",
+            "05:24:00",
+            "08:46:00",
+            "11:21:00",
+            "12:35:00",
+        ),
+        (
+            (5.9804, 116.0735),
+            DateComponents(2025, 1, 15),
+            "21:08:00",
+            "22:31:00",
+            "04:26:00",
+            "07:48:00",
+            "10:20:00",
+            "11:33:00",
+        ),
+    ],
+)
+def test_jakim_malaysian_zone_goldens(
+    coordinates, date, fajr, sunrise, dhuhr, asr, maghrib, isha
+):
+    # Slice 2.2 Takwim verification anchors: Kuala Lumpur (3.1390, 101.6869)
+    # and Kota Kinabalu (5.9804, 116.0735) on 2025-01-15, UTC.
+    # Official e-solat tables may add minute-level administrative adjustments;
+    # these goldens lock the computed 20/18 baseline, not the portal display.
+    prayer_times = PrayerTimes(
+        coordinates, date, calculation_method=CalculationMethod.JAKIM
+    )
+
+    assert prayer_times.fajr.strftime("%H:%M:%S") == fajr
+    assert prayer_times.sunrise.strftime("%H:%M:%S") == sunrise
+    assert prayer_times.dhuhr.strftime("%H:%M:%S") == dhuhr
+    assert prayer_times.asr.strftime("%H:%M:%S") == asr
+    assert prayer_times.maghrib.strftime("%H:%M:%S") == maghrib
+    assert prayer_times.isha.strftime("%H:%M:%S") == isha
+
+
+def test_imsak_defaults_to_fajr_minus_ten():
+    # Slice 2.3: Imsak = Fajr - imsak_offset (default 10). Raleigh golden:
+    # fajr 08:42 UTC -> imsak 08:32 UTC.
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NORTH_AMERICA,
+    )
+
+    assert prayer_times.imsak.strftime("%H:%M:%S") == "08:32:00"
+    assert prayer_times.time_for_prayer(Prayer.IMSAK) == prayer_times.imsak
+    assert prayer_times.imsak < prayer_times.fajr
+
+
+def test_imsak_custom_offset_and_none_method():
+    params = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, imsak_offset=15
+    )
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=params,
+    )
+    assert prayer_times.imsak.strftime("%H:%M:%S") == "08:27:00"
+
+    params_zero = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, imsak_offset=0
+    )
+    prayer_times_zero = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=params_zero,
+    )
+    assert prayer_times_zero.imsak == prayer_times_zero.fajr
+
+    # NONE is angle-less but Imsak stays defined as Fajr - offset.
+    prayer_times_none = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NONE,
+    )
+    assert prayer_times_none.imsak.strftime("%H:%M:%S") == "10:03:00"
+
+
+def test_imsak_follows_fajr_adjustments():
+    # Imsak tracks rounded Fajr: fajr adjustments flow through, imsak
+    # adjustments apply on top. Integer offsets commute with half-up
+    # minute rounding, so pre/post-rounding order is equivalent.
+    base = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    pt_base = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=base,
+    )
+
+    shifted = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    shifted.adjustments.fajr = 10
+    pt_shifted = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=shifted,
+    )
+    assert pt_shifted.fajr - pt_base.fajr == timedelta(minutes=10)
+    assert pt_shifted.imsak - pt_base.imsak == timedelta(minutes=10)
+
+    tweak = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    tweak.adjustments.imsak = 2
+    pt_tweak = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=tweak,
+    )
+    assert pt_tweak.imsak - pt_base.imsak == timedelta(minutes=2)
+    assert pt_tweak.fajr == pt_base.fajr
+
+
+def test_negative_imsak_offset_raises():
+    with pytest.raises(ValidationError, match="(?i)imsak"):
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA, imsak_offset=-1)
+
+
+def test_syuruk_ishraq_dhuha_goldens():
+    # Slice 2.4: Raleigh 2015-07-12 NORTH_AMERICA, UTC. Syuruk == sunrise;
+    # Ishraq = sunrise+15; Dhuha window starts at sunrise+28 (single
+    # Malaysian source, not universal fiqh).
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NORTH_AMERICA,
+    )
+
+    assert prayer_times.syuruk == prayer_times.sunrise
+    assert prayer_times.syuruk.strftime("%H:%M:%S") == "10:08:00"
+    assert prayer_times.ishraq.strftime("%H:%M:%S") == "10:23:00"
+    assert prayer_times.dhuha.strftime("%H:%M:%S") == "10:36:00"
+    assert prayer_times.time_for_prayer(Prayer.SYURUK) == prayer_times.syuruk
+    assert prayer_times.time_for_prayer(Prayer.ISHRAQ) == prayer_times.ishraq
+    assert prayer_times.time_for_prayer(Prayer.DHUHA) == prayer_times.dhuha
+
+
+def test_derived_markers_ordering_and_offsets():
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NORTH_AMERICA,
+    )
+
+    assert (
+        prayer_times.fajr
+        < prayer_times.sunrise
+        <= prayer_times.syuruk
+        <= prayer_times.ishraq
+        <= prayer_times.dhuha
+        <= prayer_times.dhuhr
+    )
+
+    custom = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, ishraq_offset=20, dhuha_offset=30
+    )
+    prayer_times_custom = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=custom,
+    )
+    assert prayer_times_custom.ishraq.strftime("%H:%M:%S") == "10:28:00"
+    assert prayer_times_custom.dhuha.strftime("%H:%M:%S") == "10:38:00"
+
+    # Sunrise adjustments flow through to derived markers; marker-specific
+    # adjustments apply on top without moving sunrise itself.
+    tweak = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    tweak.adjustments.sunrise = 5
+    prayer_times_tweak = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=tweak,
+    )
+    assert prayer_times_tweak.syuruk == prayer_times_tweak.sunrise
+    assert prayer_times_tweak.ishraq - prayer_times.ishraq == timedelta(minutes=5)
+
+    ishraq_tweak = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    ishraq_tweak.adjustments.ishraq = 3
+    prayer_times_ishraq = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=ishraq_tweak,
+    )
+    assert prayer_times_ishraq.ishraq - prayer_times.ishraq == timedelta(minutes=3)
+    assert prayer_times_ishraq.sunrise == prayer_times.sunrise
+
+
+def test_derived_markers_timezone_aware():
+    tz = ZoneInfo("America/New_York")
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NORTH_AMERICA,
+        time_zone=tz,
+    )
+
+    assert prayer_times.syuruk.tzinfo is not None
+    assert prayer_times.syuruk == prayer_times.sunrise
+    assert prayer_times.ishraq - prayer_times.sunrise == timedelta(minutes=15)
+    assert prayer_times.dhuha - prayer_times.sunrise == timedelta(minutes=28)
+
+
+def test_negative_ishraq_dhuha_offsets_raise():
+    with pytest.raises(ValidationError, match="(?i)ishraq"):
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA, ishraq_offset=-1)
+    with pytest.raises(ValidationError, match="(?i)dhuha"):
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA, dhuha_offset=-1)
+
+
+def test_elevation_default_zero_preserves_goldens():
+    # Slice 2.6: default elevation_m=0 keeps every sea-level golden.
+    params = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    assert params.elevation_m == 0.0
+
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=params,
+    )
+    assert prayer_times.sunrise.strftime("%H:%M:%S") == "10:08:00"
+    assert prayer_times.maghrib.strftime("%H:%M:%S") == "00:32:00"
+
+
+def test_elevation_shifts_sunrise_sunset_only():
+    # 1000 m of eye height lowers the visible horizon (dip ≈ 0.93°):
+    # sunrise earlier, sunset/maghrib later by minutes; transit-based
+    # dhuhr and angle-based fajr/isha are unaffected.
+    base = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    pt_base = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=base,
+    )
+
+    high = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, elevation_m=1000.0
+    )
+    pt_high = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=high,
+    )
+
+    sunrise_shift = (pt_high.sunrise - pt_base.sunrise).total_seconds() / 60
+    sunset_shift = (pt_high.maghrib - pt_base.maghrib).total_seconds() / 60
+    assert 1 <= -sunrise_shift <= 8
+    assert 1 <= sunset_shift <= 8
+    assert pt_high.dhuhr == pt_base.dhuhr
+    assert pt_high.fajr == pt_base.fajr
+    assert pt_high.isha == pt_base.isha
+
+
+def test_invalid_elevation_raises():
+    for bad in (-1.0, float("nan"), float("inf"), True, "100"):
+        with pytest.raises(ValidationError, match="(?i)elevation"):
+            CalculationParameters(
+                method=CalculationMethod.NORTH_AMERICA, elevation_m=bad
+            )
+
+
+def test_umm_al_qura_ramadan_mode():
+    # Slice 2.7: opt-in is_ramadan flag gives 120 minutes total after
+    # Maghrib for UMM_AL_QURA (not an additive +30). Default stays 90.
+    coordinates = (21.422510, 39.826168)
+    date = DateComponents(2022, 8, 8)
+
+    base = CalculationParameters(method=CalculationMethod.UMM_AL_QURA)
+    assert base.is_ramadan is False
+    pt_base = PrayerTimes(coordinates, date, calculation_parameters=base)
+    assert (pt_base.isha - pt_base.maghrib).total_seconds() / 60 == 90
+
+    ramadan = CalculationParameters(
+        method=CalculationMethod.UMM_AL_QURA, is_ramadan=True
+    )
+    pt_ramadan = PrayerTimes(coordinates, date, calculation_parameters=ramadan)
+    assert (pt_ramadan.isha - pt_ramadan.maghrib).total_seconds() / 60 == 120
+    assert pt_ramadan.fajr == pt_base.fajr
+    assert pt_ramadan.maghrib == pt_base.maghrib
+
+
+def test_ramadan_flag_leaves_other_methods_unchanged():
+    coordinates = (21.422510, 39.826168)
+    date = DateComponents(2022, 8, 8)
+
+    # QATAR shares the 90-minute interval shape but the Ramadan rule is
+    # Umm al-Qura-specific: unaffected.
+    qatar = CalculationParameters(method=CalculationMethod.QATAR, is_ramadan=True)
+    pt_qatar = PrayerTimes(coordinates, date, calculation_parameters=qatar)
+    assert (pt_qatar.isha - pt_qatar.maghrib).total_seconds() / 60 == 90
+
+    # Angle-based methods ignore the flag entirely.
+    angle = CalculationParameters(
+        method=CalculationMethod.MUSLIM_WORLD_LEAGUE, is_ramadan=True
+    )
+    pt_angle = PrayerTimes(coordinates, date, calculation_parameters=angle)
+    pt_plain = PrayerTimes(
+        coordinates,
+        date,
+        calculation_parameters=CalculationParameters(
+            method=CalculationMethod.MUSLIM_WORLD_LEAGUE
+        ),
+    )
+    assert pt_angle.isha == pt_plain.isha
