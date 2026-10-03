@@ -23,6 +23,16 @@ Al-Falak supports 11 calculation methods. Each method defines Fajr and Isha angl
 | Singapore | 20° | 18° | — | Singapore method |
 | UOIF | 12° | 12° | — | Union des organisations islamiques de France |
 
+## Provenance notes
+
+- Dubai: the 18.2°/18.2° angles plus `sunrise -3, dhuhr +3, asr +3, maghrib +3`
+  minute offsets are app-level tuning carried over from BatoulApps research,
+  not an official IACAD/Awqaf specification. Treat them as conventional, not
+  authoritative.
+- Qatar: this preset follows the library-canonical 18° + 90-minute Isha
+  definition. Some current Doha Awqaf publications cite 18.5° + 90 minutes;
+  that conflict is recorded here and left unresolved pending a primary source.
+
 ## Using a method
 
 ```python
