@@ -1,6 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
-from alfalak import PrayerTimes, SunnahTimes
+
+import pytest
+
+from alfalak import PrayerTimes, SunnahTimes, ValidationError
 from alfalak.calculation import CalculationMethod, CalculationParameters
 from alfalak.util.DateComponents import DateComponents
 
@@ -20,9 +23,126 @@ def test_sunnah_times():
     assert sunnah_times.middle_of_the_night == datetime(
         2015, 7, 13, 4, 28, tzinfo=timezone.utc
     )
+    assert sunnah_times.first_third_of_the_night == datetime(
+        2015, 7, 13, 3, 9, tzinfo=timezone.utc
+    )
     assert sunnah_times.last_third_of_the_night == datetime(
         2015, 7, 13, 5, 46, tzinfo=timezone.utc
     )
+
+
+def test_first_third_ordering_within_night():
+    prayer_times = _prayer_times()
+    sunnah_times = SunnahTimes(prayer_times)
+    tomorrow = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 13),
+        calculation_parameters=CalculationParameters(
+            method=CalculationMethod.MUSLIM_WORLD_LEAGUE
+        ),
+    )
+
+    assert prayer_times.maghrib < sunnah_times.first_third_of_the_night
+    assert sunnah_times.first_third_of_the_night < sunnah_times.middle_of_the_night
+    assert sunnah_times.middle_of_the_night < sunnah_times.last_third_of_the_night
+    assert sunnah_times.last_third_of_the_night < tomorrow.fajr
+
+
+def test_night_fraction_wrappers_equal_generic():
+    sunnah_times = SunnahTimes(_prayer_times())
+
+    assert sunnah_times.night_fraction(1 / 2) == sunnah_times.middle_of_the_night
+    assert sunnah_times.night_fraction(1 / 3) == sunnah_times.first_third_of_the_night
+    assert sunnah_times.night_fraction(2 / 3) == sunnah_times.last_third_of_the_night
+    # Quarter fractions stay strictly inside the night and bracket the thirds.
+    quarter = sunnah_times.night_fraction(1 / 4)
+    three_quarters = sunnah_times.night_fraction(3 / 4)
+    assert quarter < sunnah_times.first_third_of_the_night
+    assert quarter < sunnah_times.middle_of_the_night
+    assert sunnah_times.middle_of_the_night < three_quarters
+    assert sunnah_times.last_third_of_the_night < three_quarters
+
+
+@pytest.mark.parametrize(
+    "fraction", [0, 1, -0.5, 1.5, float("nan"), float("inf"), True, "0.5", None]
+)
+def test_night_fraction_invalid_raises_validation_error(fraction):
+    sunnah_times = SunnahTimes(_prayer_times())
+    with pytest.raises(ValidationError, match=r"(?i)fraction|interval"):
+        sunnah_times.night_fraction(fraction)
+
+
+def test_night_fraction_explicit_anchors_match_default():
+    prayer_times = _prayer_times()
+    sunnah_times = SunnahTimes(prayer_times)
+    tomorrow = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 13),
+        calculation_parameters=CalculationParameters(
+            method=CalculationMethod.MUSLIM_WORLD_LEAGUE
+        ),
+    )
+
+    assert (
+        sunnah_times.night_fraction(
+            1 / 2, start=prayer_times.maghrib, end=tomorrow.fajr
+        )
+        == sunnah_times.middle_of_the_night
+    )
+
+
+def test_night_fraction_isha_anchored_school():
+    # Isha-anchored night (Isha -> next-day Fajr) is shorter, so its
+    # midpoint lands after the Maghrib-anchored midpoint.
+    prayer_times = _prayer_times()
+    sunnah_times = SunnahTimes(prayer_times)
+
+    isha_half = sunnah_times.night_fraction(1 / 2, start=prayer_times.isha)
+    assert isha_half > sunnah_times.middle_of_the_night
+    assert isha_half == datetime(2015, 7, 13, 5, 17, tzinfo=timezone.utc)
+    assert prayer_times.isha < isha_half
+
+
+def test_night_fraction_anchor_validation():
+    sunnah_times = SunnahTimes(_prayer_times())
+    tomorrow = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 13),
+        calculation_parameters=CalculationParameters(
+            method=CalculationMethod.MUSLIM_WORLD_LEAGUE
+        ),
+    )
+
+    with pytest.raises(ValidationError, match="(?i)datetime|anchor"):
+        sunnah_times.night_fraction(1 / 2, start="maghrib")  # type: ignore[arg-type]
+    with pytest.raises(ValidationError, match="(?i)aware|anchor"):
+        sunnah_times.night_fraction(1 / 2, start=datetime(2015, 7, 13, 0, 32))
+    with pytest.raises(ValidationError, match="(?i)after start|interval"):
+        sunnah_times.night_fraction(1 / 2, start=tomorrow.fajr, end=tomorrow.fajr)
+    with pytest.raises(ValidationError, match="(?i)after start|interval"):
+        sunnah_times.night_fraction(
+            1 / 2,
+            start=tomorrow.fajr,
+            end=SunnahTimes(_prayer_times()).night_fraction(1 / 2),
+        )
+
+
+def test_tahajjud_window_endpoints():
+    prayer_times = _prayer_times()
+    sunnah_times = SunnahTimes(prayer_times)
+    tomorrow = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 13),
+        calculation_parameters=CalculationParameters(
+            method=CalculationMethod.MUSLIM_WORLD_LEAGUE
+        ),
+    )
+
+    start, end = sunnah_times.tahajjud_window
+    assert start == sunnah_times.last_third_of_the_night
+    assert end == tomorrow.fajr
+    assert start < end
+    assert end == datetime(2015, 7, 13, 8, 23, tzinfo=timezone.utc)
 
 
 def test_sunnah_times_ordering():
@@ -54,6 +174,84 @@ def test_sunnah_times_across_dst_transition():
     sunnah_times = SunnahTimes(prayer_times)
 
     assert sunnah_times.middle_of_the_night == datetime(2015, 3, 7, 23, 43, tzinfo=tz)
+    assert sunnah_times.first_third_of_the_night == datetime(
+        2015, 3, 7, 21, 54, tzinfo=tz
+    )
     assert sunnah_times.last_third_of_the_night == datetime(
         2015, 3, 8, 1, 32, tzinfo=tz
     )
+    assert sunnah_times.night_fraction(1 / 3) == sunnah_times.first_third_of_the_night
+    window_start, window_end = sunnah_times.tahajjud_window
+    assert window_start == sunnah_times.last_third_of_the_night
+    tomorrow = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 3, 8),
+        CalculationMethod.MUSLIM_WORLD_LEAGUE,
+        time_zone=tz,
+    )
+    assert window_end == tomorrow.fajr
+    assert (
+        prayer_times.maghrib
+        < sunnah_times.first_third_of_the_night
+        < sunnah_times.middle_of_the_night
+        < sunnah_times.last_third_of_the_night
+        < tomorrow.fajr
+    )
+
+
+def test_sunnah_times_across_fall_back_transition():
+    # US falls back on 2015-11-01 (02:00 EDT -> 01:00 EST); the night of
+    # 2015-10-31 spans the extra hour. UTC duration (11.83 h) exceeds the
+    # wall-clock difference (10.83 h); markers must follow UTC.
+    tz = ZoneInfo("America/New_York")
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 10, 31),
+        CalculationMethod.MUSLIM_WORLD_LEAGUE,
+        time_zone=tz,
+    )
+    sunnah_times = SunnahTimes(prayer_times)
+    tomorrow = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 11, 1),
+        CalculationMethod.MUSLIM_WORLD_LEAGUE,
+        time_zone=tz,
+    )
+
+    assert sunnah_times.first_third_of_the_night == datetime(
+        2015, 10, 31, 22, 17, tzinfo=tz
+    )
+    assert sunnah_times.middle_of_the_night == datetime(2015, 11, 1, 0, 15, tzinfo=tz)
+    assert sunnah_times.last_third_of_the_night == datetime(
+        2015, 11, 1, 1, 13, tzinfo=tz
+    )
+    assert sunnah_times.last_third_of_the_night.fold == 1
+    assert sunnah_times.night_fraction(1 / 2) == sunnah_times.middle_of_the_night
+    assert sunnah_times.night_fraction(1 / 3) == sunnah_times.first_third_of_the_night
+    assert sunnah_times.night_fraction(2 / 3) == sunnah_times.last_third_of_the_night
+
+    window_start, window_end = sunnah_times.tahajjud_window
+    assert window_start == sunnah_times.last_third_of_the_night
+    assert window_end == tomorrow.fajr
+    assert (
+        prayer_times.maghrib
+        < sunnah_times.first_third_of_the_night
+        < sunnah_times.middle_of_the_night
+        < sunnah_times.last_third_of_the_night
+        < tomorrow.fajr
+    )
+
+    maghrib_utc = prayer_times.maghrib.astimezone(timezone.utc)
+    fajr_utc = tomorrow.fajr.astimezone(timezone.utc)
+    absolute_hours = (fajr_utc - maghrib_utc).total_seconds() / 3600
+    assert absolute_hours == pytest.approx(11.83, abs=0.01)
+    wall_hours = (
+        tomorrow.fajr.replace(tzinfo=None) - prayer_times.maghrib.replace(tzinfo=None)
+    ).total_seconds() / 3600
+    assert wall_hours == pytest.approx(absolute_hours - 1.0, abs=0.01)
+    expected_middle_utc = maghrib_utc + timedelta(
+        seconds=int((fajr_utc - maghrib_utc).total_seconds() / 2)
+    )
+    assert sunnah_times.middle_of_the_night.astimezone(timezone.utc).replace(
+        second=0, microsecond=0
+    ) == expected_middle_utc.replace(second=0, microsecond=0)
