@@ -59,6 +59,10 @@ nearest minute half-up (`rounded_minute`), and only then converted to the
 display zone (`astimezone`). Minute-rounded outputs therefore never carry
 seconds or microseconds.
 
+Degenerate nights (Maghrib at or after next-day Fajr once offsets apply,
+e.g. extreme per-prayer adjustments) raise `ValidationError` at
+construction instead of returning a marker before Maghrib.
+
 ## Alternative anchors
 
 Some authorities anchor the night at Isha instead of Maghrib, or at

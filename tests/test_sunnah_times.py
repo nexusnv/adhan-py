@@ -1,10 +1,16 @@
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
+from fractions import Fraction
 from zoneinfo import ZoneInfo
 
 import pytest
 
 from alfalak import PrayerTimes, SunnahTimes, ValidationError
-from alfalak.calculation import CalculationMethod, CalculationParameters
+from alfalak.calculation import (
+    CalculationMethod,
+    CalculationParameters,
+    PrayerAdjustments,
+)
 from alfalak.util.DateComponents import DateComponents
 
 
@@ -101,6 +107,68 @@ def test_night_fraction_isha_anchored_school():
     assert isha_half > sunnah_times.middle_of_the_night
     assert isha_half == datetime(2015, 7, 13, 5, 17, tzinfo=timezone.utc)
     assert prayer_times.isha < isha_half
+
+
+def test_night_fraction_accepts_decimal_and_fraction():
+    sunnah_times = SunnahTimes(_prayer_times())
+
+    assert (
+        sunnah_times.night_fraction(Decimal("0.5"))
+        == sunnah_times.middle_of_the_night
+    )
+    assert (
+        sunnah_times.night_fraction(Fraction(1, 2))
+        == sunnah_times.middle_of_the_night
+    )
+    assert (
+        sunnah_times.night_fraction(Decimal("0.25"))
+        == sunnah_times.night_fraction(1 / 4)
+    )
+
+
+def test_night_fraction_end_only_and_fully_custom():
+    prayer_times = _prayer_times()
+    sunnah_times = SunnahTimes(prayer_times)
+    tomorrow = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 13),
+        calculation_parameters=CalculationParameters(
+            method=CalculationMethod.MUSLIM_WORLD_LEAGUE
+        ),
+    )
+
+    # End-only: start falls back to Maghrib, so pushing the end out by
+    # one hour pushes the midpoint out by exactly half an hour.
+    custom_end = tomorrow.fajr + timedelta(hours=1)
+    assert sunnah_times.night_fraction(
+        1 / 2, end=custom_end
+    ) == sunnah_times.middle_of_the_night + timedelta(minutes=30)
+
+    # Fully explicit pair, independent of prayer times.
+    start = datetime(2015, 7, 12, 22, 0, tzinfo=timezone.utc)
+    end = datetime(2015, 7, 13, 6, 0, tzinfo=timezone.utc)
+    assert sunnah_times.night_fraction(
+        1 / 2, start=start, end=end
+    ) == datetime(2015, 7, 13, 2, 0, tzinfo=timezone.utc)
+    assert sunnah_times.night_fraction(
+        1 / 4, start=start, end=end
+    ) == datetime(2015, 7, 13, 0, 0, tzinfo=timezone.utc)
+
+
+def test_sunnah_times_degenerate_night_raises():
+    # Maghrib +500 min lands after next-day Fajr, so the default night
+    # interval is inverted and construction must fail fast.
+    parameters = CalculationParameters(
+        method=CalculationMethod.MUSLIM_WORLD_LEAGUE,
+        adjustments=PrayerAdjustments(maghrib=500),
+    )
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=parameters,
+    )
+    with pytest.raises(ValidationError, match="(?i)after start|interval"):
+        SunnahTimes(prayer_times)
 
 
 def test_night_fraction_anchor_validation():

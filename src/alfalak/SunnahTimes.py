@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from fractions import Fraction
 import numbers
 
 from alfalak.PrayerTimes import PrayerTimes
@@ -60,7 +61,7 @@ class SunnahTimes:
 
     def night_fraction(
         self,
-        fraction: float,
+        fraction: float | Decimal | Fraction,
         start: datetime | None = None,
         end: datetime | None = None,
     ) -> datetime:
@@ -73,6 +74,13 @@ class SunnahTimes:
         variant); omitted ends fall back to the default anchors.
         Output is minute-rounded in UTC, then converted to the
         display zone.
+
+        ``fraction`` accepts ``int``/``float``/``Fraction``/``Decimal``
+        in the open interval (0, 1) — ``int`` via the numeric tower,
+        any other ``numbers.Real`` at runtime; ``bool`` is rejected.
+        A degenerate interval (``end`` at or before ``start``,
+        including a Maghrib at or after next-day Fajr) raises
+        ``ValidationError``.
         """
         if isinstance(fraction, bool) or not isinstance(
             fraction, (numbers.Real, Decimal)
