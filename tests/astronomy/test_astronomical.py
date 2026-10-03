@@ -144,3 +144,56 @@ def test_corrected_hour_angle_returns_nan_for_impossible_altitude():
     )
 
     assert math.isnan(impossible)
+
+
+def test_solar_declination_wrapper():
+    # Same Ex.25.a anchor as test_solar_coordinates (1992-10-13, p.165):
+    # delta = -7d47'06" = -7.78507deg. Wrapper must equal SolarCoordinates.
+    jd = CalendricalHelper.julian_day(1992, 10, 13)
+    solar = SolarCoordinates(jd)
+
+    assert Astronomical.solar_declination(jd) == pytest.approx(
+        solar.declination, abs=1e-12
+    )
+    assert Astronomical.solar_declination(jd) == pytest.approx(-7.78507, abs=1e-5)
+
+
+def test_equation_of_time_full_chain():
+    # Meeus Ch.28 (p.183): E = L0 - 0.0057183 - alpha + Δψ·cos ε, in minutes.
+    # Full-chain golden for 1992-10-13 (same anchor as Ex.25.a: L0 = 201.80720,
+    # alpha = 198.38083): E ≈ +13.699 min, pinned here within ±10 s.
+    jd = CalendricalHelper.julian_day(1992, 10, 13)
+
+    assert Astronomical.equation_of_time(jd) == pytest.approx(13.699, abs=0.17)
+
+
+def test_equation_of_time_curve_spots():
+    # Coarse curve checks (±60 s): February minimum ~-14.2, November maximum
+    # ~+16.4, near-zero crossings mid-April / mid-June / early September.
+    spots = [
+        ((2025, 2, 11), -14.2),
+        ((2025, 11, 3), 16.4),
+        ((2025, 4, 15), 0.0),
+        ((2025, 6, 13), 0.0),
+        ((2025, 9, 1), 0.0),
+    ]
+    for (year, month, day), expected in spots:
+        jd = CalendricalHelper.julian_day(year, month, day)
+        assert Astronomical.equation_of_time(jd) == pytest.approx(
+            expected, abs=1.0
+        )
+
+
+def test_equation_of_time_agrees_with_transit():
+    # Characterization: the Ch.28 direct EoT path and the Ch.15 interpolated
+    # transit path agree. For Greenwich (lon 0): transit ≈ 12:00 − E/60.
+    from alfalak.astronomy.SolarTime import SolarTime
+    from alfalak.util.DateComponents import DateComponents
+
+    for (year, month, day) in [(1992, 10, 13), (2025, 2, 11), (2025, 11, 3)]:
+        jd = CalendricalHelper.julian_day(year, month, day)
+        eot_hours = Astronomical.equation_of_time(jd) / 60.0
+        transit = SolarTime(
+            DateComponents(year, month, day), Coordinates(51.5, 0.0)
+        ).transit
+        assert transit == pytest.approx(12.0 - eot_hours, abs=30 / 3600)
