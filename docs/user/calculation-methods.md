@@ -15,7 +15,7 @@ Al-Falak supports 12 calculation methods. Each method defines Fajr and Isha angl
 | ISNA (North America) | 15° | 15° | — | Not recommended for general use |
 | Egyptian | 19.5° | 17.5° | — | Egyptian General Authority |
 | Karachi | 18° | 18° | — | University of Islamic Sciences |
-| Umm al-Qura | 18.5° | — | 90 min | Add +30 min in Ramadan |
+| Umm al-Qura | 18.5° | — | 90 min (120 in Ramadan via `is_ramadan=True`) | Makkah; flag is caller-set, UQU preset only |
 | Dubai | 18.2° | 18.2° | — | Gulf region |
 | Moonsighting Committee | 18° | 18° | — | Seasonal adjustments |
 | Kuwait | 18° | 17.5° | — | Kuwait method |

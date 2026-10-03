@@ -25,6 +25,7 @@ class CalculationParameters:
         ishraq_offset: int = 15,
         dhuha_offset: int = 28,
         elevation_m: float = 0.0,
+        is_ramadan: bool = False,
     ) -> None:
         # The madhab used to calculate Asr
         self.madhab = Madhab.SHAFI
@@ -53,6 +54,11 @@ class CalculationParameters:
         # source, not universal fiqh — configurable, see docs)
         self.ishraq_offset = ishraq_offset
         self.dhuha_offset = dhuha_offset
+
+        # Umm al-Qura Ramadan mode: Isha is 120 minutes after Maghrib in
+        # Ramadan vs 90 otherwise (total, not an additive +30). Opt-in flag;
+        # applies to the UMM_AL_QURA preset only.
+        self.is_ramadan = is_ramadan
 
         # Estimation strategy when the sun never rises/sets (polar day/night)
         if not isinstance(polar_circle_rule, PolarCircleRule):

@@ -910,3 +910,48 @@ def test_invalid_elevation_raises():
             CalculationParameters(
                 method=CalculationMethod.NORTH_AMERICA, elevation_m=bad
             )
+
+
+def test_umm_al_qura_ramadan_mode():
+    # Slice 2.7: opt-in is_ramadan flag gives 120 minutes total after
+    # Maghrib for UMM_AL_QURA (not an additive +30). Default stays 90.
+    coordinates = (21.422510, 39.826168)
+    date = DateComponents(2022, 8, 8)
+
+    base = CalculationParameters(method=CalculationMethod.UMM_AL_QURA)
+    assert base.is_ramadan is False
+    pt_base = PrayerTimes(coordinates, date, calculation_parameters=base)
+    assert (pt_base.isha - pt_base.maghrib).total_seconds() / 60 == 90
+
+    ramadan = CalculationParameters(
+        method=CalculationMethod.UMM_AL_QURA, is_ramadan=True
+    )
+    pt_ramadan = PrayerTimes(coordinates, date, calculation_parameters=ramadan)
+    assert (pt_ramadan.isha - pt_ramadan.maghrib).total_seconds() / 60 == 120
+    assert pt_ramadan.fajr == pt_base.fajr
+    assert pt_ramadan.maghrib == pt_base.maghrib
+
+
+def test_ramadan_flag_leaves_other_methods_unchanged():
+    coordinates = (21.422510, 39.826168)
+    date = DateComponents(2022, 8, 8)
+
+    # QATAR shares the 90-minute interval shape but the Ramadan rule is
+    # Umm al-Qura-specific: unaffected.
+    qatar = CalculationParameters(method=CalculationMethod.QATAR, is_ramadan=True)
+    pt_qatar = PrayerTimes(coordinates, date, calculation_parameters=qatar)
+    assert (pt_qatar.isha - pt_qatar.maghrib).total_seconds() / 60 == 90
+
+    # Angle-based methods ignore the flag entirely.
+    angle = CalculationParameters(
+        method=CalculationMethod.MUSLIM_WORLD_LEAGUE, is_ramadan=True
+    )
+    pt_angle = PrayerTimes(coordinates, date, calculation_parameters=angle)
+    pt_plain = PrayerTimes(
+        coordinates,
+        date,
+        calculation_parameters=CalculationParameters(
+            method=CalculationMethod.MUSLIM_WORLD_LEAGUE
+        ),
+    )
+    assert pt_angle.isha == pt_plain.isha

@@ -415,15 +415,21 @@ class PrayerTimes:
         # Isha calculation with check against safe value
         temp_isha = None
         try:
+            # Umm al-Qura Ramadan mode: 120 minutes total after Maghrib
+            # instead of 90 (not an additive +30). Other methods unaffected.
+            isha_interval = self.calculation_parameters.isha_interval
+            if (
+                self.calculation_parameters.is_ramadan
+                and self.calculation_parameters.method == CalculationMethod.UMM_AL_QURA
+            ):
+                isha_interval = 120
             # NOTE: stays ValueError on purpose - the except (ValueError,
             # TypeError) below depends on this exact type to switch to
             # angle-based Isha. Not part of the public error tree.
-            if self.calculation_parameters.isha_interval < 1:
+            if isha_interval < 1:
                 raise ValueError("Isha interval is either not defined or less than 1.")
 
-            temp_isha = sunset + timedelta(
-                seconds=self.calculation_parameters.isha_interval * 60
-            )
+            temp_isha = sunset + timedelta(seconds=isha_interval * 60)
         except (ValueError, TypeError):
             timeComponents = TimeComponents.from_float(
                 self._solar_time.hour_angle(

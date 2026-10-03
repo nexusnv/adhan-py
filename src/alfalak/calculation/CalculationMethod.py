@@ -26,8 +26,8 @@ class CalculationMethod(Enum):
     UMM_AL_QURA = 4
     """
     Umm al-Qura University, Makkah
-    Uses a Fajr angle of 18.5 and an Isha angle of 90. Note: You should add a +30 minute custom
-    adjustment of Isha during Ramadan.
+    Uses a Fajr angle of 18.5 and an Isha interval of 90 minutes
+    (120 minutes in Ramadan via CalculationParameters(is_ramadan=True)).
     """
 
     DUBAI = 5
