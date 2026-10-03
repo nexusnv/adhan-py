@@ -91,6 +91,9 @@ def test_time_for_prayer_matches_attributes():
     assert prayer_times.time_for_prayer(Prayer.IMSAK) == prayer_times.imsak
     assert prayer_times.time_for_prayer(Prayer.FAJR) == prayer_times.fajr
     assert prayer_times.time_for_prayer(Prayer.SUNRISE) == prayer_times.sunrise
+    assert prayer_times.time_for_prayer(Prayer.SYURUK) == prayer_times.syuruk
+    assert prayer_times.time_for_prayer(Prayer.ISHRAQ) == prayer_times.ishraq
+    assert prayer_times.time_for_prayer(Prayer.DHUHA) == prayer_times.dhuha
     assert prayer_times.time_for_prayer(Prayer.DHUHR) == prayer_times.dhuhr
     assert prayer_times.time_for_prayer(Prayer.ASR) == prayer_times.asr
     assert prayer_times.time_for_prayer(Prayer.MAGHRIB) == prayer_times.maghrib

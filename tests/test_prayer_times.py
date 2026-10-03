@@ -410,7 +410,11 @@ def test_twilight_preset_definitions_locked():
             method_adjustments.isha,
         ) == adjustments
         assert method_adjustments.imsak == 0
+        assert method_adjustments.ishraq == 0
+        assert method_adjustments.dhuha == 0
         assert params.imsak_offset == 10
+        assert params.ishraq_offset == 15
+        assert params.dhuha_offset == 28
 
 
 def test_milestone_twilight_rows_pinned():
@@ -763,3 +767,94 @@ def test_imsak_follows_fajr_adjustments():
 def test_negative_imsak_offset_raises():
     with pytest.raises(ValidationError, match="(?i)imsak"):
         CalculationParameters(method=CalculationMethod.NORTH_AMERICA, imsak_offset=-1)
+
+
+def test_syuruk_ishraq_dhuha_goldens():
+    # Slice 2.4: Raleigh 2015-07-12 NORTH_AMERICA, UTC. Syuruk == sunrise;
+    # Ishraq = sunrise+15; Dhuha window starts at sunrise+28 (single
+    # Malaysian source, not universal fiqh).
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NORTH_AMERICA,
+    )
+
+    assert prayer_times.syuruk == prayer_times.sunrise
+    assert prayer_times.syuruk.strftime("%H:%M:%S") == "10:08:00"
+    assert prayer_times.ishraq.strftime("%H:%M:%S") == "10:23:00"
+    assert prayer_times.dhuha.strftime("%H:%M:%S") == "10:36:00"
+    assert prayer_times.time_for_prayer(Prayer.SYURUK) == prayer_times.syuruk
+    assert prayer_times.time_for_prayer(Prayer.ISHRAQ) == prayer_times.ishraq
+    assert prayer_times.time_for_prayer(Prayer.DHUHA) == prayer_times.dhuha
+
+
+def test_derived_markers_ordering_and_offsets():
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NORTH_AMERICA,
+    )
+
+    assert (
+        prayer_times.fajr
+        < prayer_times.sunrise
+        <= prayer_times.syuruk
+        <= prayer_times.ishraq
+        <= prayer_times.dhuha
+        <= prayer_times.dhuhr
+    )
+
+    custom = CalculationParameters(
+        method=CalculationMethod.NORTH_AMERICA, ishraq_offset=20, dhuha_offset=30
+    )
+    prayer_times_custom = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=custom,
+    )
+    assert prayer_times_custom.ishraq.strftime("%H:%M:%S") == "10:28:00"
+    assert prayer_times_custom.dhuha.strftime("%H:%M:%S") == "10:38:00"
+
+    # Sunrise adjustments flow through to derived markers; marker-specific
+    # adjustments apply on top without moving sunrise itself.
+    tweak = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    tweak.adjustments.sunrise = 5
+    prayer_times_tweak = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=tweak,
+    )
+    assert prayer_times_tweak.syuruk == prayer_times_tweak.sunrise
+    assert prayer_times_tweak.ishraq - prayer_times.ishraq == timedelta(minutes=5)
+
+    ishraq_tweak = CalculationParameters(method=CalculationMethod.NORTH_AMERICA)
+    ishraq_tweak.adjustments.ishraq = 3
+    prayer_times_ishraq = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_parameters=ishraq_tweak,
+    )
+    assert prayer_times_ishraq.ishraq - prayer_times.ishraq == timedelta(minutes=3)
+    assert prayer_times_ishraq.sunrise == prayer_times.sunrise
+
+
+def test_derived_markers_timezone_aware():
+    tz = ZoneInfo("America/New_York")
+    prayer_times = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 12),
+        calculation_method=CalculationMethod.NORTH_AMERICA,
+        time_zone=tz,
+    )
+
+    assert prayer_times.syuruk.tzinfo is not None
+    assert prayer_times.syuruk == prayer_times.sunrise
+    assert prayer_times.ishraq - prayer_times.sunrise == timedelta(minutes=15)
+    assert prayer_times.dhuha - prayer_times.sunrise == timedelta(minutes=28)
+
+
+def test_negative_ishraq_dhuha_offsets_raise():
+    with pytest.raises(ValidationError, match="(?i)ishraq"):
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA, ishraq_offset=-1)
+    with pytest.raises(ValidationError, match="(?i)dhuha"):
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA, dhuha_offset=-1)

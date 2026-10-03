@@ -21,6 +21,8 @@ class CalculationParameters:
         isha_angle: float = 0.0,
         polar_circle_rule: PolarCircleRule = PolarCircleRule.NEAREST_LATITUDE,
         imsak_offset: int = 10,
+        ishraq_offset: int = 15,
+        dhuha_offset: int = 28,
     ) -> None:
         # The madhab used to calculate Asr
         self.madhab = Madhab.SHAFI
@@ -39,6 +41,12 @@ class CalculationParameters:
         # published tables are mostly but not always exactly Fajr-10, so
         # this stays configurable rather than hardcoded)
         self.imsak_offset = imsak_offset
+
+        # Minutes after sunrise for Ishraq (15 per Ibn Uthaymin) and for the
+        # start of the Dhuha window (28 per a single Malaysian Syuruk+28
+        # source, not universal fiqh — configurable, see docs)
+        self.ishraq_offset = ishraq_offset
+        self.dhuha_offset = dhuha_offset
 
         # Estimation strategy when the sun never rises/sets (polar day/night)
         if not isinstance(polar_circle_rule, PolarCircleRule):
@@ -89,6 +97,14 @@ class CalculationParameters:
         if self.imsak_offset < 0:
             raise ValidationError(
                 f"Imsak offset must be non-negative, got {self.imsak_offset}."
+            )
+        if self.ishraq_offset < 0:
+            raise ValidationError(
+                f"Ishraq offset must be non-negative, got {self.ishraq_offset}."
+            )
+        if self.dhuha_offset < 0:
+            raise ValidationError(
+                f"Dhuha offset must be non-negative, got {self.dhuha_offset}."
             )
 
     def night_portions(self) -> NightPortions:

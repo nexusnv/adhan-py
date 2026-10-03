@@ -21,6 +21,12 @@ class PrayerAdjustments:
     isha: int
     # Isha offset in minutes
 
+    ishraq: int
+    # Ishraq offset in minutes (applied on top of sunrise + ishraq_offset)
+
+    dhuha: int
+    # Dhuha offset in minutes (applied on top of sunrise + dhuha_offset)
+
     def __init__(
         self,
         fajr: int = 0,
@@ -30,6 +36,8 @@ class PrayerAdjustments:
         maghrib: int = 0,
         isha: int = 0,
         imsak: int = 0,
+        ishraq: int = 0,
+        dhuha: int = 0,
     ):
         """
         Gets a PrayerAdjustments object to offset prayer times (defaulting to 0)
@@ -40,6 +48,8 @@ class PrayerAdjustments:
         param maghrib offset from maghrib in minutes
         param isha offset from isha in minutes
         param imsak offset from imsak in minutes
+        param ishraq offset from ishraq in minutes
+        param dhuha offset from dhuha in minutes
         """
         self.fajr = fajr
         self.sunrise = sunrise
@@ -48,3 +58,5 @@ class PrayerAdjustments:
         self.maghrib = maghrib
         self.isha = isha
         self.imsak = imsak
+        self.ishraq = ishraq
+        self.dhuha = dhuha

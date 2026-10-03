@@ -47,6 +47,20 @@ the rounded Fajr (equivalent to pre-rounding for integer-minute offsets);
 `adjustments.imsak` applies on top, and Fajr adjustments flow through to
 Imsak. Defined for all methods including `NONE`.
 
+## Syuruk, Ishraq and Dhuha
+
+Pure sunrise derivations, no new astronomy:
+
+- `Syuruk == sunrise` — the MY/SG name for sunrise/end-of-Fajr.
+- `Ishraq = sunrise + ishraq_offset` (default 15 minutes, configurable).
+- `Dhuha = sunrise + dhuha_offset` (default 28 minutes, configurable) marks
+  the start of the Dhuha window, not a canonical point. The 28-minute figure
+  comes from a single Malaysian Syuruk+28 source and is not universal fiqh.
+
+Sunrise adjustments flow through to all three markers; `adjustments.ishraq`
+and `adjustments.dhuha` apply on top. Ordering for defaults:
+`fajr < sunrise <= syuruk <= ishraq <= dhuha <= dhuhr`.
+
 ## Provenance notes
 
 - Dubai: the 18.2°/18.2° angles plus `sunrise -3, dhuhr +3, asr +3, maghrib +3`

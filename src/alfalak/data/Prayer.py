@@ -11,6 +11,12 @@ class Prayer(Enum):
 
     SUNRISE = 2
 
+    SYURUK = 8
+
+    ISHRAQ = 9
+
+    DHUHA = 10
+
     DHUHR = 3
 
     ASR = 4

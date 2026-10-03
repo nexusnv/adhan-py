@@ -89,6 +89,9 @@ class PrayerTimes:
     imsak: datetime
     fajr: datetime
     sunrise: datetime
+    syuruk: datetime
+    ishraq: datetime
+    dhuha: datetime
     dhuhr: datetime
     asr: datetime
     maghrib: datetime
@@ -109,7 +112,8 @@ class PrayerTimes:
             calculation_parameters: CalculationParameters
             time_zone: example ZoneInfo("Europe/London")
         Returns:
-            PrayerTimes object with UTC datetimes for imsak, fajr, sunrise, dhuhr, asr, maghrib and isha
+            PrayerTimes object with UTC datetimes for imsak, fajr, sunrise,
+            syuruk, ishraq, dhuha, dhuhr, asr, maghrib and isha
         """
 
         if (calculation_parameters is None) == (calculation_method is None):
@@ -211,6 +215,7 @@ class PrayerTimes:
         self._set_fajr()
         self._set_imsak()
         self._set_sunrise()
+        self._set_syuruk_ishraq_dhuha()
         self._set_dhuhr(transit)
         self._set_asr()
         self._set_maghrib()
@@ -311,6 +316,25 @@ class PrayerTimes:
             self.calculation_parameters.method_adjustments,
             "sunrise",
             self._sunrise_components,
+        )
+
+    def _set_syuruk_ishraq_dhuha(self) -> None:
+        # Pure derivations from the adjusted sunrise: no new astronomy.
+        # Syuruk is sunrise under its MY/SG name. Ishraq defaults to
+        # sunrise+15; Dhuha is the start of the Dhuha window
+        # (sunrise+28 per a single Malaysian source, not universal fiqh).
+        self.syuruk = self.sunrise
+        self.ishraq = self._rounded_minute(
+            self.calculation_parameters.adjustments,
+            self.calculation_parameters.method_adjustments,
+            "ishraq",
+            self.sunrise + timedelta(minutes=self.calculation_parameters.ishraq_offset),
+        )
+        self.dhuha = self._rounded_minute(
+            self.calculation_parameters.adjustments,
+            self.calculation_parameters.method_adjustments,
+            "dhuha",
+            self.sunrise + timedelta(minutes=self.calculation_parameters.dhuha_offset),
         )
 
     def _set_dhuhr(self, time: datetime) -> None:
@@ -443,6 +467,12 @@ class PrayerTimes:
             return self.fajr
         elif prayer == Prayer.SUNRISE:
             return self.sunrise
+        elif prayer == Prayer.SYURUK:
+            return self.syuruk
+        elif prayer == Prayer.ISHRAQ:
+            return self.ishraq
+        elif prayer == Prayer.DHUHA:
+            return self.dhuha
         elif prayer == Prayer.DHUHR:
             return self.dhuhr
         elif prayer == Prayer.ASR:
@@ -458,6 +488,9 @@ class PrayerTimes:
             self.imsak = self.imsak.astimezone(self.time_zone)
             self.fajr = self.fajr.astimezone(self.time_zone)
             self.sunrise = self.sunrise.astimezone(self.time_zone)
+            self.syuruk = self.syuruk.astimezone(self.time_zone)
+            self.ishraq = self.ishraq.astimezone(self.time_zone)
+            self.dhuha = self.dhuha.astimezone(self.time_zone)
             self.dhuhr = self.dhuhr.astimezone(self.time_zone)
             self.asr = self.asr.astimezone(self.time_zone)
             self.maghrib = self.maghrib.astimezone(self.time_zone)
