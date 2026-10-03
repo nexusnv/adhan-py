@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 import numbers
 
@@ -78,9 +78,11 @@ class SunnahTimes:
         ``fraction`` accepts ``int``/``float``/``Fraction``/``Decimal``
         in the open interval (0, 1) — ``int`` via the numeric tower,
         any other ``numbers.Real`` at runtime; ``bool`` is rejected.
-        A degenerate interval (``end`` at or before ``start``,
-        including a Maghrib at or after next-day Fajr) raises
-        ``ValidationError``.
+        Validation and the offset use the exact input value (no binary
+        float rounding), and the offset keeps sub-minute precision so
+        minute rounding sees the true seconds. A degenerate interval
+        (``end`` at or before ``start``, including a Maghrib at or
+        after next-day Fajr) raises ``ValidationError``.
         """
         if isinstance(fraction, bool) or not isinstance(
             fraction, (numbers.Real, Decimal)
@@ -88,8 +90,13 @@ class SunnahTimes:
             raise ValidationError(
                 f"Night fraction must be a real number in (0, 1), got {fraction!r}."
             )
-        fraction_float = float(fraction)
-        if not 0 < fraction_float < 1:
+        try:
+            in_range = 0 < fraction < 1
+        except InvalidOperation:
+            raise ValidationError(
+                f"Night fraction must be in (0, 1) exclusive, got {fraction!r}."
+            ) from None
+        if not in_range:
             raise ValidationError(
                 f"Night fraction must be in (0, 1) exclusive, got {fraction!r}."
             )
@@ -98,15 +105,31 @@ class SunnahTimes:
             self._maghrib_utc if start is None else self._coerce_utc(start, "start")
         )
         end_utc = self._fajr_next_utc if end is None else self._coerce_utc(end, "end")
-        night_duration = (end_utc - start_utc).total_seconds()
-        if night_duration <= 0:
+        delta = end_utc - start_utc
+        if delta <= timedelta(0):
             raise ValidationError(
                 "Night interval must have end after start, "
                 f"got start={start_utc.isoformat()}, end={end_utc.isoformat()}."
             )
-        return rounded_minute(
-            start_utc + timedelta(seconds=int(night_duration * fraction_float))
-        ).astimezone(self._zone)
+        # Exact duration from timedelta components (total_seconds() is a
+        # binary float); exact fraction value (no float() underflow for
+        # tiny Decimal/Fraction inputs). float() only at the end, where
+        # timedelta needs it — microsecond resolution is far finer than
+        # the minute rounding that follows.
+        duration = Fraction(
+            (delta.days * 86400 + delta.seconds) * 1_000_000 + delta.microseconds,
+            1_000_000,
+        )
+        try:
+            frac_exact = Fraction(fraction)
+        except TypeError:
+            # Exotic numbers.Real outside (int/float/Fraction/Decimal):
+            # input already validated above, fall back to its float value.
+            frac_exact = Fraction(float(fraction))
+        offset_seconds = float(duration * frac_exact)
+        return rounded_minute(start_utc + timedelta(seconds=offset_seconds)).astimezone(
+            self._zone
+        )
 
     @staticmethod
     def _coerce_utc(value: datetime, name: str) -> datetime:

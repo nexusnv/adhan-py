@@ -126,6 +126,48 @@ def test_night_fraction_accepts_decimal_and_fraction():
     )
 
 
+def test_night_fraction_exact_tiny_and_near_one_accepted():
+    # Values valid in (0, 1) that underflow to 0.0 or round to 1.0 as
+    # binary floats must not be rejected.
+    prayer_times = _prayer_times()
+    sunnah_times = SunnahTimes(prayer_times)
+    tomorrow = PrayerTimes(
+        (35.7750, -78.6336),
+        DateComponents(2015, 7, 13),
+        calculation_parameters=CalculationParameters(
+            method=CalculationMethod.MUSLIM_WORLD_LEAGUE
+        ),
+    )
+
+    assert sunnah_times.night_fraction(
+        Fraction(1, 10**400)
+    ) == prayer_times.maghrib
+    assert sunnah_times.night_fraction(Decimal("1E-400")) == prayer_times.maghrib
+    assert sunnah_times.night_fraction(
+        Fraction(10**400 - 1, 10**400)
+    ) == tomorrow.fajr
+
+
+def test_night_fraction_decimal_nan_signaling_raises_validation_error():
+    sunnah_times = SunnahTimes(_prayer_times())
+    with pytest.raises(ValidationError, match=r"(?i)fraction"):
+        sunnah_times.night_fraction(Decimal("NaN"))
+    with pytest.raises(ValidationError, match=r"(?i)fraction"):
+        sunnah_times.night_fraction(Decimal("sNaN"))
+
+
+def test_night_fraction_sub_minute_anchors_round_half_up():
+    # A 59 s interval starting at .9 s: half is .4 s past :30, so
+    # half-up minute rounding must round up. Truncating the offset to
+    # whole seconds first would land at :29.9 and round down instead.
+    sunnah_times = SunnahTimes(_prayer_times())
+    start = datetime(2015, 7, 13, 0, 0, 0, 900000, tzinfo=timezone.utc)
+    end = start + timedelta(seconds=59)
+    assert sunnah_times.night_fraction(
+        1 / 2, start=start, end=end
+    ) == datetime(2015, 7, 13, 0, 1, tzinfo=timezone.utc)
+
+
 def test_night_fraction_end_only_and_fully_custom():
     prayer_times = _prayer_times()
     sunnah_times = SunnahTimes(prayer_times)
