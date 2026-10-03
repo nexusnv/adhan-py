@@ -52,6 +52,18 @@ These rules are most relevant for locations above ~48° latitude during summer m
 | 55°–60° | Copenhagen, Oslo, Stockholm, St. Petersburg |
 | 60°+ | Helsinki, Reykjavik, Anchorage, Longyearbyen |
 
+## Interaction with Moonsighting Committee and polar fallback
+
+- These caps apply to every method, but `MOON_SIGHTING_COMMITTEE` does not
+  use them: it substitutes its own seasonal-twilight caps (see
+  [Calculation Methods](/calculation-methods/) — MSC section).
+- Interval Isha (Umm al-Qura, Qatar) bypasses the Isha cap entirely:
+  `maghrib + interval` is used as-is.
+- Order of operations: `PolarCircleRule` resolution runs first (no-op on
+  normal days). Only afterwards do these night-fraction caps clamp Fajr/Isha.
+  Near the polar boundary the Asr clamps (`asr = dhuhr` when the shadow angle
+  is unreachable, `asr = maghrib` when it spills past sunset) can also engage.
+
 ## See also
 
 - [Polar Regions](/polar-regions/) — handling polar day/night

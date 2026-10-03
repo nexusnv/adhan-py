@@ -80,6 +80,46 @@ sunset minutes later; sea-level goldens are unchanged.
   definition. Some current Doha Awqaf publications cite 18.5° + 90 minutes;
   that conflict is recorded here and left unresolved pending a primary source.
 
+## Angle vs interval Isha
+
+Most methods compute Isha from a twilight angle (`isha_angle`). Two presets
+instead use a fixed interval after Maghrib:
+
+| Preset | Mode | Value |
+|---|---|---|
+| Umm al-Qura | interval | 90 min (120 in Ramadan via `is_ramadan=True`) |
+| Qatar | interval | 90 min |
+
+Interval Isha ignores `isha_angle` (stored as 0.0) and the high-latitude
+night-fraction caps. The Ramadan 120 is a total, not an additive +30, and
+applies to the Umm al-Qura preset only — Qatar and angle-based methods are
+unaffected by the flag.
+
+## Method offsets
+
+Some presets add fixed minute offsets on top of the computed times
+(`method_adjustments`, distinct from user `adjustments`):
+
+| Preset | Offsets |
+|---|---|
+| Muslim World League, Egyptian, Karachi, North America, Singapore, JAKIM | `dhuhr +1` |
+| Dubai | `sunrise -3, dhuhr +3, asr +3, maghrib +3` (see provenance note above) |
+| Moonsighting Committee | `dhuhr +5, maghrib +3` |
+| Kuwait, Umm al-Qura, Qatar, UOIF | none |
+
+User `adjustments` stack on top of these and are applied before
+minute-rounding in `_rounded_minute`.
+
+## Moonsighting Committee seasonal twilight
+
+Unlike other methods, `MOON_SIGHTING_COMMITTEE` replaces the night-fraction
+safety caps with season-adjusted twilight curves (1/7-night based, after
+moonsighting.com): Fajr is capped by `season_adjusted_morning_twilight` and
+Isha floored by `season_adjusted_evening_twilight`. At latitude ≥ 55° the
+angle-derived Fajr/Isha are additionally replaced by 1/7-of-night estimates
+before the seasonal cap is applied. Elsewhere the angle computation stands
+unless it breaches the seasonal cap.
+
 ## Using a method
 
 ```python
