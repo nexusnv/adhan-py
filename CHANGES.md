@@ -1,5 +1,70 @@
 # Changelog
 
+## 1.1.0 — 2026-10-03 (phases 1–3: geodesy, twilight markers, night divisions)
+
+> Scope: this release lands milestone phases 1–3 only (core geodesy,
+> solar/twilight markers, night divisions). Phase 4 (Hijri/moon-sighting:
+> lunar ephemeris, Yallop/Odeh, MABIMS) and phase 5+ remain for the next
+> minor release. No breaking API changes from 1.0.0.
+
+* Phase 1 — geodesy and calendrical hardening:
+  * Lock JD/J2000 goldens (Meeus Ch.7) and document the Gregorian-only
+    limitation (no Julian-calendar branch; correct for prayer use).
+  * Lock Qibla spherical bearing goldens; move `MAKKAH` into canonical
+    `data/Constants.py` (4-dp canonical `21.4225N, 39.8262E`, 7-dp digits
+    kept for cross-port compat); document spherical-vs-ellipsoidal error
+    (typically few arcmin, worst ~0.3–0.35°) and degenerate
+    Makkah-to-self/antipode behavior (float in [0,360), no raise).
+  * Add `Qibla.distance_to_makkah_km` (haversine `atan2` form,
+    `R = 6371.0088 km` IUGG mean radius pinned).
+  * Add opt-in `Qibla(method="ellipsoidal")` Karney inverse on WGS84
+    (`astronomy/Geodesy.py`); spherical stays default; unknown method
+    raises `ConfigurationError`.
+  * Add `Qibla.magnetic_direction(declination_deg)` pure hook
+    (`true − declination_east`, NOAA east-positive; model lookup stays
+    caller-side; future WMM/IGRF provider must take `(model, epoch)`).
+  * Document geodesy accuracy budget, Kaaba precision, and why Haversine
+    alone is not high-precision (`docs/user/qibla.md`).
+* Phase 2 — twilight and prayer markers:
+  * Lock one golden day per twilight preset (all 11 + `NONE`); pin
+    `MWL 18/17`, `EGYPTIAN 19.5/17.5`, `NORTH_AMERICA 15/15 (ISNA)`,
+    `SINGAPORE 20/18 (MUIS)`; record Dubai-offset provenance and the
+    Qatar 18-vs-18.5 source conflict as doc notes.
+  * Add `CalculationMethod.JAKIM` (20/18, identical angles to `SINGAPORE`
+    by design; Malay naming + zone metadata; verified against Takwim
+    Malaysia Kuala Lumpur/Kota Kinabalu).
+  * Add `imsak` marker (`Fajr − imsak_offset`, default 10 min,
+    configurable); new `Prayer.IMSAK`, `PrayerAdjustments.imsak`,
+    `time_for_prayer` support, CLI row.
+  * Add `syuruk`/`ishraq`/`dhuha` markers derived from sunrise
+    (`syuruk == sunrise`; `ishraq` default +15 min; `dhuha` window-start
+    default +28 min, single Malaysian source; `dhuha_offset >=
+    ishraq_offset` validated); new `Prayer` members, no `syuruk`
+    adjustment slot by design (sunrise flows through).
+  * Expose `equation_of_time(jd)` / `solar_declination(jd)` thin wrappers
+    (Meeus Ch.28/Ch.25; transit path unchanged).
+  * Add `elevation_m` observer correction (dip `0.0293°·√h_m`, metres;
+    sunrise/sunset/Maghrib only; default 0 = unchanged goldens).
+  * Add Umm al-Qura Ramadan mode (`is_ramadan: bool`, `UMM_AL_QURA`
+    only; 120 min total vs 90 otherwise, not additive +30).
+  * Document angle-vs-interval Isha, DUBAI/MSC offsets, seasonal
+    twilight, and `HighLatitudeRule`/`PolarCircleRule` interaction.
+* Phase 3 — night divisions:
+  * Add `first_third_of_the_night` (Maghrib + ⅓ night).
+  * Add generic `night_fraction(f, start=None, end=None)`
+    (`0 < f < 1`, `int`/`float`/`Fraction`/`Decimal`; explicit aware
+    anchors for Isha-anchored/sunset-anchored schools; UTC math,
+    minute-rounded, `ValidationError` on bad fraction/interval).
+  * Add `tahajjud_window` (`last_third → next-day Fajr`); existing
+    `middle`/`last_third` become thin wrappers.
+  * Night is Maghrib → next-day Fajr (offsets included); document rounding
+    order and anchor alternatives (`docs/user/sunnah-times.md`).
+* Docs: `docs/user/` topical pages cover every new marker/parameter
+  (`calculation-methods`, `qibla`, `sunnah-times`, `api-reference`,
+  `cli`, `citations`); `docs/user/v1.0.0/` frozen snapshot untouched.
+* Tests: 653 collected; `black --check src/` → `ruff check src/ tests/`
+  → `mypy src` → `pytest --cov-fail-under=95` green.
+
 ## 1.0.0 — 2026-09-30 (first independent `al-falak` release)
 
 > `al-falak` is versioned independently from `adhanpy` (a separate PyPI

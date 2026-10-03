@@ -111,7 +111,7 @@ zone.
 
 | Method | Returns | Description |
 |---|---|---|
-| `night_fraction(fraction, start=None, end=None)` | `datetime` | Maghrib + `fraction` of the night (`0 < fraction < 1`, else `ValidationError`); pass aware `start`/`end` datetimes for Isha-anchored or sunset-anchored variants, `end` must be after `start` |
+| `night_fraction(fraction, start=None, end=None)` | `datetime` | Maghrib + `fraction` of the night (`0 < fraction < 1`, else `ValidationError`); accepts `int`/`float`/`Fraction`/`Decimal` (`bool` rejected); pass aware `start`/`end` datetimes for Isha-anchored or sunset-anchored variants, `end` must be after `start` |
 
 ## CalculationParameters
 

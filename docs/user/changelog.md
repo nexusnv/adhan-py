@@ -5,6 +5,25 @@ description: Version history for al-falak.
 
 # Changelog
 
+## 1.1.0 — phases 1–3 (geodesy, twilight markers, night divisions)
+
+> Scope: phases 1–3 only. Phase 4 (Hijri/moon-sighting) and later remain
+> for the next minor release. No breaking API changes from 1.0.0.
+
+- Phase 1: JD/J2000 goldens + Gregorian-only note; Qibla bearing lock +
+  canonical constants; `Qibla.distance_to_makkah_km`; opt-in
+  `Qibla(method="ellipsoidal")` (Karney/WGS84);
+  `Qibla.magnetic_direction()` hook; geodesy accuracy budget docs
+- Phase 2: twilight preset goldens; `CalculationMethod.JAKIM` (20/18);
+  `imsak` (Fajr − 10 min); `syuruk`/`ishraq` (+15)/`dhuha` (+28);
+  `equation_of_time`/`solar_declination` helpers; `elevation_m`
+  dip correction; Umm al-Qura Ramadan mode (`is_ramadan`, 120 min total)
+- Phase 3: `first_third_of_the_night`;
+  `night_fraction(f, start=None, end=None)`; `tahajjud_window`;
+  Maghrib → next-day Fajr night definition documented
+- See `CHANGES.md` for the full entry and `docs/user/` topical pages for
+  behavior details
+
 ## 1.0.0 — first independent `al-falak` release
 
 > `al-falak` is versioned independently from `adhanpy` (a separate PyPI
