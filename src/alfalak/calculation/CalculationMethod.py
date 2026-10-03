@@ -72,3 +72,12 @@ class CalculationMethod(Enum):
     UOIF
     Uses a Fajr angle of 12 and an Isha angle of 12
     """
+
+    JAKIM = 12
+    """
+    Jabatan Kemajuan Islam Malaysia (JAKIM)
+    Uses a Fajr angle of 20 and an Isha angle of 18, identical angles to
+    SINGAPORE by design. Not a different twilight computation: the separate
+    preset exists for presentation/operations (Malay naming, Malaysian zone
+    metadata, e-solat timetable alignment).
+    """

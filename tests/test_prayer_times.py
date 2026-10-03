@@ -380,6 +380,7 @@ def test_twilight_preset_definitions_locked():
         CalculationMethod.QATAR: (18.0, 0.0, 90, (0, 0, 0, 0, 0, 0)),
         CalculationMethod.SINGAPORE: (20.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
         CalculationMethod.UOIF: (12.0, 12.0, 0, (0, 0, 0, 0, 0, 0)),
+        CalculationMethod.JAKIM: (20.0, 18.0, 0, (0, 0, 1, 0, 0, 0)),
     }
 
     assert set(expected) == set(CalculationMethod)
@@ -407,23 +408,27 @@ def test_twilight_preset_definitions_locked():
 
 def test_milestone_twilight_rows_pinned():
     # Milestone Phase 2 rows mapped to presets: MWL 18/17, Egypt 19.5/17.5,
-    # ISNA 15/15 via NORTH_AMERICA, JAKIM/MUIS 20/18 via SINGAPORE.
-    assert CalculationParameters(
-        method=CalculationMethod.MUSLIM_WORLD_LEAGUE
-    ).fajr_angle == 18.0
-    assert CalculationParameters(
-        method=CalculationMethod.MUSLIM_WORLD_LEAGUE
-    ).isha_angle == 17.0
+    # ISNA 15/15 via NORTH_AMERICA, JAKIM/MUIS 20/18 via SINGAPORE and JAKIM.
+    assert (
+        CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE).fajr_angle
+        == 18.0
+    )
+    assert (
+        CalculationParameters(method=CalculationMethod.MUSLIM_WORLD_LEAGUE).isha_angle
+        == 17.0
+    )
     assert CalculationParameters(method=CalculationMethod.EGYPTIAN).fajr_angle == 19.5
     assert CalculationParameters(method=CalculationMethod.EGYPTIAN).isha_angle == 17.5
-    assert CalculationParameters(
-        method=CalculationMethod.NORTH_AMERICA
-    ).fajr_angle == 15.0
-    assert CalculationParameters(
-        method=CalculationMethod.NORTH_AMERICA
-    ).isha_angle == 15.0
+    assert (
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA).fajr_angle == 15.0
+    )
+    assert (
+        CalculationParameters(method=CalculationMethod.NORTH_AMERICA).isha_angle == 15.0
+    )
     assert CalculationParameters(method=CalculationMethod.SINGAPORE).fajr_angle == 20.0
     assert CalculationParameters(method=CalculationMethod.SINGAPORE).isha_angle == 18.0
+    assert CalculationParameters(method=CalculationMethod.JAKIM).fajr_angle == 20.0
+    assert CalculationParameters(method=CalculationMethod.JAKIM).isha_angle == 18.0
 
 
 @pytest.mark.parametrize(
@@ -537,9 +542,20 @@ def test_milestone_twilight_rows_pinned():
             "00:32:00",
             "01:38:00",
         ),
+        (
+            CalculationMethod.JAKIM,
+            "08:07:00",
+            "10:08:00",
+            "17:21:00",
+            "21:09:00",
+            "00:32:00",
+            "02:18:00",
+        ),
     ],
 )
-def test_twilight_preset_goldens_raleigh(method, fajr, sunrise, dhuhr, asr, maghrib, isha):
+def test_twilight_preset_goldens_raleigh(
+    method, fajr, sunrise, dhuhr, asr, maghrib, isha
+):
     # One golden day per method: Raleigh (35.7750, -78.6336), 2015-07-12, UTC.
     # Angle-vs-interval mode is asserted below for UMM_AL_QURA/QATAR.
     prayer_times = PrayerTimes(
@@ -566,3 +582,96 @@ def test_twilight_preset_goldens_raleigh(method, fajr, sunrise, dhuhr, asr, magh
             <= prayer_times.maghrib
             <= prayer_times.isha
         )
+
+
+def test_jakim_matches_singapore_by_design():
+    # Slice 2.2: JAKIM uses identical 20/18 angles plus dhuhr=1, so computed
+    # times must equal SINGAPORE exactly. Not a different computation.
+    jakim = CalculationParameters(method=CalculationMethod.JAKIM)
+    singapore = CalculationParameters(method=CalculationMethod.SINGAPORE)
+
+    assert (jakim.fajr_angle, jakim.isha_angle, jakim.isha_interval) == (
+        singapore.fajr_angle,
+        singapore.isha_angle,
+        singapore.isha_interval,
+    )
+    assert (
+        jakim.method_adjustments.fajr,
+        jakim.method_adjustments.sunrise,
+        jakim.method_adjustments.dhuhr,
+        jakim.method_adjustments.asr,
+        jakim.method_adjustments.maghrib,
+        jakim.method_adjustments.isha,
+    ) == (
+        singapore.method_adjustments.fajr,
+        singapore.method_adjustments.sunrise,
+        singapore.method_adjustments.dhuhr,
+        singapore.method_adjustments.asr,
+        singapore.method_adjustments.maghrib,
+        singapore.method_adjustments.isha,
+    )
+
+    for coordinates, date in [
+        ((35.7750, -78.6336), DateComponents(2015, 7, 12)),
+        ((3.1390, 101.6869), DateComponents(2015, 7, 12)),
+        ((5.9804, 116.0735), DateComponents(2015, 7, 12)),
+        ((3.1390, 101.6869), DateComponents(2025, 1, 15)),
+        ((5.9804, 116.0735), DateComponents(2025, 1, 15)),
+    ]:
+        jakim_times = PrayerTimes(
+            coordinates, date, calculation_method=CalculationMethod.JAKIM
+        )
+        singapore_times = PrayerTimes(
+            coordinates, date, calculation_method=CalculationMethod.SINGAPORE
+        )
+
+        assert jakim_times.fajr == singapore_times.fajr
+        assert jakim_times.sunrise == singapore_times.sunrise
+        assert jakim_times.dhuhr == singapore_times.dhuhr
+        assert jakim_times.asr == singapore_times.asr
+        assert jakim_times.maghrib == singapore_times.maghrib
+        assert jakim_times.isha == singapore_times.isha
+
+
+@pytest.mark.parametrize(
+    "coordinates, date, fajr, sunrise, dhuhr, asr, maghrib, isha",
+    [
+        (
+            (3.1390, 101.6869),
+            DateComponents(2025, 1, 15),
+            "22:02:00",
+            "23:24:00",
+            "05:24:00",
+            "08:46:00",
+            "11:21:00",
+            "12:35:00",
+        ),
+        (
+            (5.9804, 116.0735),
+            DateComponents(2025, 1, 15),
+            "21:08:00",
+            "22:31:00",
+            "04:26:00",
+            "07:48:00",
+            "10:20:00",
+            "11:33:00",
+        ),
+    ],
+)
+def test_jakim_malaysian_zone_goldens(
+    coordinates, date, fajr, sunrise, dhuhr, asr, maghrib, isha
+):
+    # Slice 2.2 Takwim verification anchors: Kuala Lumpur (3.1390, 101.6869)
+    # and Kota Kinabalu (5.9804, 116.0735) on 2025-01-15, UTC.
+    # Official e-solat tables may add minute-level administrative adjustments;
+    # these goldens lock the computed 20/18 baseline, not the portal display.
+    prayer_times = PrayerTimes(
+        coordinates, date, calculation_method=CalculationMethod.JAKIM
+    )
+
+    assert prayer_times.fajr.strftime("%H:%M:%S") == fajr
+    assert prayer_times.sunrise.strftime("%H:%M:%S") == sunrise
+    assert prayer_times.dhuhr.strftime("%H:%M:%S") == dhuhr
+    assert prayer_times.asr.strftime("%H:%M:%S") == asr
+    assert prayer_times.maghrib.strftime("%H:%M:%S") == maghrib
+    assert prayer_times.isha.strftime("%H:%M:%S") == isha
