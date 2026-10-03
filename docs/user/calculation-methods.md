@@ -58,17 +58,24 @@ Pure sunrise derivations, no new astronomy:
   comes from a single Malaysian Syuruk+28 source and is not universal fiqh.
 
 Sunrise adjustments flow through to all three markers; `adjustments.ishraq`
-and `adjustments.dhuha` apply on top. Ordering for defaults:
-`fajr < sunrise <= syuruk <= ishraq <= dhuha <= dhuhr`.
+and `adjustments.dhuha` apply on top. There is intentionally no separate
+`adjustments.syuruk` slot: Syuruk is sunrise under its MY/SG name. Ordering
+for defaults: `fajr < sunrise <= syuruk <= ishraq <= dhuha <= dhuhr`.
+`CalculationParameters` rejects `dhuha_offset < ishraq_offset` with a
+`ValidationError` so the offset configuration alone can never invert the
+`ishraq <= dhuha` link (per-prayer `adjustments` can still shift individual
+markers afterwards).
 
 ## Observer elevation
 
 `CalculationParameters(elevation_m=...)` (default 0 = sea level) applies the
 dip-of-horizon correction to sunrise, sunset and Maghrib:
-`h0 = -0.833° - 0.0293°·√h_m` (h in metres, Nautical Almanac/Bowditch; valid
-for eye heights of ~0 to tens of metres). Angle-based Fajr/Isha and
-transit-based Dhuhr are unaffected. At 1000 m sunrise is minutes earlier and
-sunset minutes later; sea-level goldens are unchanged.
+`h0 = -0.833° - 0.0293°·√h_m` (h in metres, Nautical Almanac/Bowditch).
+Direct `SolarTime` construction and `CalculationParameters` both reject
+non-finite or negative elevations with a `ValidationError`. Angle-based
+Fajr/Isha and transit-based Dhuhr are unaffected. At 1000 m sunrise is
+minutes earlier and sunset minutes later (covered by tests); sea-level
+goldens are unchanged.
 
 ## Provenance notes
 

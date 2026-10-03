@@ -7,7 +7,10 @@ class PrayerAdjustments:
     # Fajr offset in minutes
 
     sunrise: int
-    # Sunrise offset in minutes
+    # Sunrise offset in minutes. There is intentionally no separate
+    # ``syuruk`` slot: Syuruk is defined as sunrise under its MY/SG name,
+    # so ``sunrise`` adjustments flow through to ``syuruk`` (as well as to
+    # ``ishraq``/``dhuha``, which are derived from the adjusted sunrise).
 
     dhuhr: int
     # Dhuhr offset in minutes

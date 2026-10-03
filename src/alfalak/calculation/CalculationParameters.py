@@ -57,7 +57,12 @@ class CalculationParameters:
 
         # Umm al-Qura Ramadan mode: Isha is 120 minutes after Maghrib in
         # Ramadan vs 90 otherwise (total, not an additive +30). Opt-in flag;
-        # applies to the UMM_AL_QURA preset only.
+        # applies to the UMM_AL_QURA preset only. Must be a real bool so
+        # truthy non-bool values cannot silently enable Ramadan mode.
+        if not isinstance(is_ramadan, bool):
+            raise ConfigurationError(
+                "is_ramadan must be a bool, " f"got {type(is_ramadan).__name__}."
+            )
         self.is_ramadan = is_ramadan
 
         # Estimation strategy when the sun never rises/sets (polar day/night)
@@ -102,21 +107,47 @@ class CalculationParameters:
             raise ValidationError(
                 f"Isha angle must be within [0, 90], got {self.isha_angle}."
             )
-        if self.isha_interval < 0:
+        if (
+            isinstance(self.isha_interval, bool)
+            or not isinstance(self.isha_interval, int)
+            or self.isha_interval < 0
+        ):
             raise ValidationError(
-                f"Isha interval must be non-negative, got {self.isha_interval}."
+                "Isha interval must be a non-negative integer number of "
+                f"minutes, got {self.isha_interval!r}."
             )
-        if self.imsak_offset < 0:
+        if (
+            isinstance(self.imsak_offset, bool)
+            or not isinstance(self.imsak_offset, int)
+            or self.imsak_offset < 0
+        ):
             raise ValidationError(
-                f"Imsak offset must be non-negative, got {self.imsak_offset}."
+                "Imsak offset must be a non-negative integer number of "
+                f"minutes, got {self.imsak_offset!r}."
             )
-        if self.ishraq_offset < 0:
+        if (
+            isinstance(self.ishraq_offset, bool)
+            or not isinstance(self.ishraq_offset, int)
+            or self.ishraq_offset < 0
+        ):
             raise ValidationError(
-                f"Ishraq offset must be non-negative, got {self.ishraq_offset}."
+                "Ishraq offset must be a non-negative integer number of "
+                f"minutes, got {self.ishraq_offset!r}."
             )
-        if self.dhuha_offset < 0:
+        if (
+            isinstance(self.dhuha_offset, bool)
+            or not isinstance(self.dhuha_offset, int)
+            or self.dhuha_offset < 0
+        ):
             raise ValidationError(
-                f"Dhuha offset must be non-negative, got {self.dhuha_offset}."
+                "Dhuha offset must be a non-negative integer number of "
+                f"minutes, got {self.dhuha_offset!r}."
+            )
+        if self.dhuha_offset < self.ishraq_offset:
+            raise ValidationError(
+                "Dhuha offset must be >= Ishraq offset to preserve "
+                f"sunrise <= ishraq <= dhuha, got ishraq_offset="
+                f"{self.ishraq_offset!r}, dhuha_offset={self.dhuha_offset!r}."
             )
         if (
             isinstance(self.elevation_m, bool)

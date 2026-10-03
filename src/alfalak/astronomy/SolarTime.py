@@ -8,6 +8,7 @@ from alfalak.astronomy.CalendricalHelper import julian_day
 from alfalak.data.Coordinates import Coordinates
 from alfalak.data.ShadowLength import ShadowLength
 from alfalak.astronomy.SolarCoordinates import SolarCoordinates
+from alfalak.exceptions import ValidationError
 from alfalak.util.DateComponents import DateComponents
 
 
@@ -18,6 +19,16 @@ class SolarTime:
         coordinates: Coordinates,
         elevation_m: float = 0.0,
     ):
+        if (
+            isinstance(elevation_m, bool)
+            or not isinstance(elevation_m, (int, float))
+            or not math.isfinite(elevation_m)
+            or elevation_m < 0
+        ):
+            raise ValidationError(
+                "Elevation must be a finite non-negative number of metres, "
+                f"got {elevation_m!r}."
+            )
         julian_date = julian_day(
             date_components.year, date_components.month, date_components.day
         )

@@ -113,6 +113,38 @@ def test_time_for_prayer_rejects_none():
         prayer_times.time_for_prayer(Prayer.NONE)
 
 
+def test_prayer_definition_order_is_chronological_and_values_frozen():
+    # Definition (iteration) order is the canonical chronological order.
+    # Numeric values are frozen: FAJR=1..ISHA=6 predate the newer markers,
+    # so never sort by .value for chronology — iterate the enum instead.
+    assert [prayer.name for prayer in Prayer] == [
+        "NONE",
+        "IMSAK",
+        "FAJR",
+        "SUNRISE",
+        "SYURUK",
+        "ISHRAQ",
+        "DHUHA",
+        "DHUHR",
+        "ASR",
+        "MAGHRIB",
+        "ISHA",
+    ]
+    assert {
+        "NONE": 0,
+        "FAJR": 1,
+        "SUNRISE": 2,
+        "DHUHR": 3,
+        "ASR": 4,
+        "MAGHRIB": 5,
+        "ISHA": 6,
+        "IMSAK": 7,
+        "SYURUK": 8,
+        "ISHRAQ": 9,
+        "DHUHA": 10,
+    } == {prayer.name: prayer.value for prayer in Prayer}
+
+
 def test_docs_cover_public_api():
     # docs/user/api-reference.md must name every public export or the
     # reference rots; word boundaries so Prayer is not satisfied by
